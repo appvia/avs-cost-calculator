@@ -155,6 +155,10 @@
         .positive {
             color: #28a745;
         }
+        .funding {
+            color: #17a2b8;
+            font-weight: bold;
+        }
         .negative {
             color: #dc3545;
         }
@@ -817,32 +821,57 @@
                 </div>
                 
                 <div class="section">
-                    <h3>Timeline & Analysis Parameters</h3>
+                    <h3>Cloud Partner Funding & Incentives</h3>
                     <div class="input-group">
                         <div class="input-field">
-                            <label>Analysis Period (Years)
+                            <label>Microsoft Partner Migration Funding (£)
                                 <span class="info-icon">i
-                                    <span class="tooltip">Time period for ROI analysis. Typically 3-5 years to capture full benefits of cloud migration.</span>
+                                    <span class="tooltip">Migration funding provided by Microsoft to qualified partners. Typically £10,000-£50,000+ depending on migration size and partner level.</span>
                                 </span>
                             </label>
-                            <input type="number" id="analysis_period" value="5" step="1" min="1" max="10">
+                            <input type="number" id="migration_funding" value="25000" step="1000">
                         </div>
                         <div class="input-field">
-                            <label>Discount Rate (%)
+                            <label>Azure Consumption Credits (£)
                                 <span class="info-icon">i
-                                    <span class="tooltip">Company discount rate for NPV calculations. Typically 6-10% reflecting cost of capital and risk.</span>
+                                    <span class="tooltip">Azure credits provided to offset initial consumption costs. Often £5,000-£25,000 for qualified migrations.</span>
                                 </span>
                             </label>
-                            <input type="number" id="discount_rate" value="8" step="0.5" min="0" max="20">
+                            <input type="number" id="azure_credits" value="15000" step="1000">
                         </div>
                         <div class="input-field">
-                            <label>Annual Growth Rate (%)
+                            <label>Professional Services Funding (£)
                                 <span class="info-icon">i
-                                    <span class="tooltip">Expected annual growth in IT costs due to inflation, capacity growth, and business expansion.</span>
+                                    <span class="tooltip">Funding for partner professional services, workshops, and migration support. Varies by partner tier and project scope.</span>
                                 </span>
                             </label>
-                            <input type="number" id="growth_rate" value="3" step="0.5" min="0" max="15">
+                            <input type="number" id="professional_services_funding" value="20000" step="1000">
                         </div>
+                        <div class="input-field">
+                            <label>Training & Certification Funding (£)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Microsoft funding for Azure training and certification programs for customer IT staff.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="training_funding" value="5000" step="1000">
+                        </div>
+                        <div class="input-field">
+                            <label>Additional Partner Incentives (£)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Other partner incentives such as go-to-market funding, marketing co-op, or special migration programs.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="additional_incentives" value="10000" step="1000">
+                        </div>
+                        <div class="input-field">
+                            <!-- Empty for grid alignment -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Migration Timeline</h3>
+                    <div class="input-group">
                         <div class="input-field">
                             <label>Migration Timeline (Months)
                                 <span class="info-icon">i
@@ -850,6 +879,9 @@
                                 </span>
                             </label>
                             <input type="number" id="migration_timeline" value="6" step="1" min="1" max="24">
+                        </div>
+                        <div class="input-field">
+                            <!-- Empty for grid alignment -->
                         </div>
                     </div>
                 </div>
@@ -866,30 +898,37 @@
                     
                     <div class="formula-box">
                         <h4>1. Return on Investment (ROI)</h4>
-                        <p><strong>ROI = [(Total Benefits - Total Investment) / Total Investment] × 100</strong></p>
+                        <p><strong>ROI = [(Total Savings - Total Investment) / Total Investment] × 100</strong></p>
                         <p><strong>Where:</strong></p>
                         <ul>
-                            <li><strong>Total Benefits:</strong> Sum of annual cost savings over the analysis period</li>
-                            <li><strong>Total Investment:</strong> Migration costs + Modernisation investment + Contingency</li>
+                            <li><strong>Total Savings:</strong> Sum of annual cost savings over the analysis period</li>
+                            <li><strong>Total Investment:</strong> Net migration costs after partner funding</li>
                         </ul>
                     </div>
 
                     <div class="formula-box">
-                        <h4>2. Net Present Value (NPV)</h4>
-                        <p><strong>NPV = Σ(t=1 to n) [CFt / (1 + r)^t] - Initial Investment</strong></p>
-                        <p><strong>Where:</strong></p>
-                        <ul>
-                            <li><strong>CFt:</strong> Cash flow (cost savings) in year t</li>
-                            <li><strong>r:</strong> Discount rate (company's cost of capital)</li>
-                            <li><strong>t:</strong> Year number</li>
-                            <li><strong>n:</strong> Analysis period in years</li>
-                        </ul>
+                        <h4>2. Payback Period</h4>
+                        <p><strong>Payback Period = Time when Cumulative Savings ≥ Total Investment</strong></p>
+                        <p>Simple calculation showing when the investment will be recovered through cost savings.</p>
                     </div>
 
                     <div class="formula-box">
-                        <h4>3. Payback Period</h4>
-                        <p><strong>Payback Period = Time when Cumulative Discounted Cash Flows ≥ Initial Investment</strong></p>
-                        <p>Uses linear interpolation within the payback year for precision.</p>
+                        <h4>3. Total Cost Savings</h4>
+                        <p><strong>Total Savings = Σ(t=1 to n) [Annual Savings in Year t]</strong></p>
+                        <p>Sum of all cost savings over the analysis period, accounting for growth and modernisation.</p>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>4. Migration Investment with Partner Funding</h4>
+                        <p><strong>Gross Investment = (Base Migration Costs × (1 + Contingency%)) + Modernisation Investment</strong></p>
+                        <p><strong>Partner Funding = Migration Funding + Azure Credits + Services Funding + Training Funding + Additional Incentives</strong></p>
+                        <p><strong>Net Investment = Max(0, Gross Investment - Partner Funding)</strong></p>
+                        <p><strong>Where:</strong></p>
+                        <ul>
+                            <li><strong>Base Migration Costs:</strong> Assessment + Tools + Professional Services + Training + Downtime</li>
+                            <li><strong>Partner Funding:</strong> Total funding and incentives from Microsoft and partners</li>
+                            <li><strong>Net Investment:</strong> Actual customer investment after applying all funding</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -1002,9 +1041,14 @@
                                     <td>One-time costs that must be recovered through savings</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Analysis Parameters</strong></td>
-                                    <td>Time period, discount rate, growth rate</td>
-                                    <td>Controls NPV calculations and time value of money</td>
+                                    <td><strong>Partner Funding</strong></td>
+                                    <td>Microsoft funding, Azure credits, services funding, training funding</td>
+                                    <td>Reduces net migration investment and improves ROI</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Financial Analysis Parameters</strong></td>
+                                    <td>Analysis period, growth rate</td>
+                                    <td>Controls analysis timeframe and cost growth projections</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1022,6 +1066,7 @@
                             <li><strong>Growth Rates:</strong> Applied equally to on-premises and Azure costs</li>
                             <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
                             <li><strong>Modernisation:</strong> Savings begin after modernisation timeline</li>
+                            <li><strong>Simple Calculations:</strong> No discounting or time value of money adjustments</li>
                             <li><strong>Currency:</strong> All costs in GBP (£)</li>
                         </ul>
                     </div>
@@ -1045,10 +1090,36 @@
                 <h2>ROI Analysis & Calculations</h2>
                 
                 <div class="formula-box">
-                    <h4>ROI Calculation Formula</h4>
-                    <p><strong>ROI = (Total Benefits - Total Investment) / Total Investment × 100</strong></p>
-                    <p><strong>NPV = Σ (Cash Flow / (1 + Discount Rate)^Year) - Initial Investment</strong></p>
-                    <p><strong>Payback Period = Initial Investment / Average Annual Cash Flow</strong></p>
+                    <h4>Financial Analysis Formulas</h4>
+                    <p><strong>ROI = (Total Savings - Total Investment) / Total Investment × 100</strong></p>
+                    <p><strong>Payback Period = Time when Cumulative Savings ≥ Total Investment</strong></p>
+                    <p><strong>Annual Growth = Cost in Year t = Base Cost × (1 + Growth Rate)^(t-1)</strong></p>
+                </div>
+
+                <div class="section">
+                    <h3>Financial Analysis Parameters</h3>
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>Analysis Period (Years)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Time period for ROI analysis. Typically 3-5 years to capture full benefits of cloud migration.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="analysis_period" value="5" step="1" min="1" max="10">
+                        </div>
+
+                        <div class="input-field">
+                            <label>Annual Growth Rate (%)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Expected annual growth in IT costs due to inflation, capacity growth, and business expansion.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="growth_rate" value="3" step="0.5" min="0" max="15">
+                        </div>
+                        <div class="input-field">
+                            <!-- Empty for grid alignment -->
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="calculate-btn" onclick="calculateROI()">Calculate ROI & TCO</button>
@@ -1062,17 +1133,27 @@
                     </div>
                     
                     <div class="metric">
-                        <span class="metric-label">Net Present Value (NPV)</span>
-                        <span class="metric-value" id="npv-value">£0</span>
-                    </div>
-                    
-                    <div class="metric">
                         <span class="metric-label">Payback Period</span>
                         <span class="metric-value" id="payback-period">0 years</span>
                     </div>
                     
                     <div class="metric">
-                        <span class="metric-label">Total Investment</span>
+                        <span class="metric-label">Total Cost Savings</span>
+                        <span class="metric-value positive" id="total-savings">£0</span>
+                    </div>
+                    
+                    <div class="metric">
+                        <span class="metric-label">Gross Investment</span>
+                        <span class="metric-value" id="gross-investment">£0</span>
+                    </div>
+                    
+                    <div class="metric">
+                        <span class="metric-label">Partner Funding</span>
+                        <span class="metric-value funding" id="partner-funding">£0</span>
+                    </div>
+                    
+                    <div class="metric">
+                        <span class="metric-label">Net Investment</span>
                         <span class="metric-value" id="total-investment">£0</span>
                     </div>
                     
@@ -1272,9 +1353,15 @@
                 downtime_cost: parseFloat(document.getElementById('downtime_cost').value) || 0,
                 contingency: parseFloat(document.getElementById('contingency').value) || 0,
                 
+                // Partner funding & incentives
+                migration_funding: parseFloat(document.getElementById('migration_funding').value) || 0,
+                azure_credits: parseFloat(document.getElementById('azure_credits').value) || 0,
+                professional_services_funding: parseFloat(document.getElementById('professional_services_funding').value) || 0,
+                training_funding: parseFloat(document.getElementById('training_funding').value) || 0,
+                additional_incentives: parseFloat(document.getElementById('additional_incentives').value) || 0,
+                
                 // Analysis parameters
                 analysis_period: parseInt(document.getElementById('analysis_period').value) || 5,
-                discount_rate: parseFloat(document.getElementById('discount_rate').value) || 8,
                 growth_rate: parseFloat(document.getElementById('growth_rate').value) || 3,
                 migration_timeline: parseInt(document.getElementById('migration_timeline').value) || 6
             };
@@ -1339,13 +1426,18 @@
             // Calculate migration investment including modernisation
             const migrationCosts = inputs.assessment + inputs.migration_tools + inputs.professional_services + 
                 inputs.training + inputs.downtime_cost;
-            const totalMigrationCosts = migrationCosts * (1 + inputs.contingency / 100) + inputs.modernisation_investment;
+            const grossMigrationCosts = migrationCosts * (1 + inputs.contingency / 100) + inputs.modernisation_investment;
+            
+            // Calculate total partner funding and incentives
+            const totalPartnerFunding = inputs.migration_funding + inputs.azure_credits + 
+                inputs.professional_services_funding + inputs.training_funding + inputs.additional_incentives;
+            
+            // Net migration costs after partner funding
+            const totalMigrationCosts = Math.max(0, grossMigrationCosts - totalPartnerFunding);
 
-            // Calculate NPV and ROI with modernisation timeline
-            let npv = -totalMigrationCosts;
+            // Calculate savings and ROI with modernisation timeline
             let totalBenefits = 0;
             let totalModernisationSavings = 0;
-            const discountRate = inputs.discount_rate / 100;
             const growthRate = inputs.growth_rate / 100;
             const modernisationStartYear = Math.ceil(inputs.modernisation_timeline / 12);
 
@@ -1380,8 +1472,6 @@
                 
                 const yearlySavings = yearlyOnPremCost - yearlyAzureCost;
                 
-                const presentValue = yearlySavings / Math.pow(1 + discountRate, year);
-                npv += presentValue;
                 totalBenefits += yearlySavings;
                 cumulativeSavings += yearlySavings;
 
@@ -1399,20 +1489,19 @@
             const roi = ((totalBenefits - totalMigrationCosts) / totalMigrationCosts) * 100;
             const annualSavings = totalBenefits / inputs.analysis_period;
             
-            // Calculate accurate payback period using cumulative discounted cash flows
-            function calculateAccuratePaybackPeriod(totalMigrationCosts, yearlyBreakdown, discountRate) {
-                let cumulativeDiscountedCashFlow = 0;
+            // Calculate simple payback period using cumulative savings
+            function calculateSimplePaybackPeriod(totalMigrationCosts, yearlyBreakdown) {
+                let cumulativeSavings = 0;
                 
                 for (let i = 0; i < yearlyBreakdown.length; i++) {
                     const year = yearlyBreakdown[i];
-                    const discountedCashFlow = year.savings / Math.pow(1 + discountRate, year.year);
-                    cumulativeDiscountedCashFlow += discountedCashFlow;
+                    cumulativeSavings += year.savings;
                     
-                    if (cumulativeDiscountedCashFlow >= totalMigrationCosts) {
+                    if (cumulativeSavings >= totalMigrationCosts) {
                         // Linear interpolation for more precise payback period
-                        const previousCumulative = cumulativeDiscountedCashFlow - discountedCashFlow;
+                        const previousCumulative = cumulativeSavings - year.savings;
                         const remainingAmount = totalMigrationCosts - previousCumulative;
-                        const fractionOfYear = remainingAmount / discountedCashFlow;
+                        const fractionOfYear = remainingAmount / year.savings;
                         
                         return (year.year - 1) + fractionOfYear;
                     }
@@ -1422,17 +1511,18 @@
                 return -1; // Indicates no payback within analysis period
             }
             
-            const paybackPeriod = calculateAccuratePaybackPeriod(totalMigrationCosts, yearlyBreakdown, discountRate);
+            const paybackPeriod = calculateSimplePaybackPeriod(totalMigrationCosts, yearlyBreakdown);
 
             // Display results
             document.getElementById('roi-percentage').textContent = roi.toFixed(1) + '%';
             document.getElementById('roi-percentage').className = 'metric-value ' + (roi > 0 ? 'positive' : 'negative');
             
-            document.getElementById('npv-value').textContent = '£' + npv.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('npv-value').className = 'metric-value ' + (npv > 0 ? 'positive' : 'negative');
-            
             document.getElementById('payback-period').textContent = paybackPeriod === -1 ? 
                 'No payback within analysis period' : paybackPeriod.toFixed(1) + ' years';
+            
+            document.getElementById('total-savings').textContent = '£' + totalBenefits.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('gross-investment').textContent = '£' + grossMigrationCosts.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('partner-funding').textContent = '£' + totalPartnerFunding.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('total-investment').textContent = '£' + totalMigrationCosts.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('total-benefits').textContent = '£' + totalBenefits.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('modernisation-savings').textContent = '£' + totalModernisationSavings.toLocaleString(undefined, {maximumFractionDigits: 0});
