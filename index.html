@@ -290,6 +290,7 @@
             <button class="tab" onclick="showTab('azure')">Azure VMware Solution</button>
             <button class="tab" onclick="showTab('modernisation')">Modernisation</button>
             <button class="tab" onclick="showTab('migration')">Migration Costs</button>
+            <button class="tab" onclick="showTab('documentation')">Documentation</button>
             <button class="tab" onclick="showTab('results')">ROI Analysis</button>
         </div>
         
@@ -854,6 +855,190 @@
                 </div>
             </div>
         </div>
+
+        <div id="documentation" class="tab-content">
+            <div class="section">
+                <h2>Calculation Methodology & Documentation</h2>
+                <p>This calculator uses established financial analysis methods to evaluate the Total Cost of Ownership (TCO) and Return on Investment (ROI) for migrating from on-premises VMware to Azure VMware Solution.</p>
+                
+                <div class="section">
+                    <h3>Core Financial Formulas</h3>
+                    
+                    <div class="formula-box">
+                        <h4>1. Return on Investment (ROI)</h4>
+                        <p><strong>ROI = [(Total Benefits - Total Investment) / Total Investment] × 100</strong></p>
+                        <p><strong>Where:</strong></p>
+                        <ul>
+                            <li><strong>Total Benefits:</strong> Sum of annual cost savings over the analysis period</li>
+                            <li><strong>Total Investment:</strong> Migration costs + Modernisation investment + Contingency</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>2. Net Present Value (NPV)</h4>
+                        <p><strong>NPV = Σ(t=1 to n) [CFt / (1 + r)^t] - Initial Investment</strong></p>
+                        <p><strong>Where:</strong></p>
+                        <ul>
+                            <li><strong>CFt:</strong> Cash flow (cost savings) in year t</li>
+                            <li><strong>r:</strong> Discount rate (company's cost of capital)</li>
+                            <li><strong>t:</strong> Year number</li>
+                            <li><strong>n:</strong> Analysis period in years</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>3. Payback Period</h4>
+                        <p><strong>Payback Period = Time when Cumulative Discounted Cash Flows ≥ Initial Investment</strong></p>
+                        <p>Uses linear interpolation within the payback year for precision.</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Cost Calculation Methods</h3>
+                    
+                    <div class="formula-box">
+                        <h4>Method 1: Fixed Annual Cost</h4>
+                        <p>Uses a single total annual cost figure for your current environment.</p>
+                        <p><strong>On-Premises Annual Cost = Fixed Annual Cost</strong></p>
+                        <p><strong>Hardware Portion = 50% of Fixed Cost</strong> (used for refresh calculations)</p>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>Method 2: Detailed Cost Breakdown</h4>
+                        <p><strong>On-Premises Annual Cost = Infrastructure + Operations</strong></p>
+                        <p><strong>Infrastructure:</strong> Hardware + VMware Licensing + Storage + Network + Backup + Support</p>
+                        <p><strong>Operations:</strong> Data Centre + Power/Cooling + Staff + Connectivity</p>
+                        <p><strong>Hardware Portion:</strong> Hardware + Storage + Network Equipment</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Growth and Timing Calculations</h3>
+                    
+                    <div class="formula-box">
+                        <h4>Annual Cost Growth</h4>
+                        <p><strong>Cost in Year t = Base Cost × (1 + Growth Rate)^(t-1)</strong></p>
+                        <p>Applied to both on-premises and Azure costs to account for inflation and business growth.</p>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>Hardware Refresh Costs</h4>
+                        <p><strong>Refresh Cost = Hardware Portion × Cost Multiplier × (Refresh % / 100)</strong></p>
+                        <p><strong>Refresh Timing:</strong> Based on hardware age and refresh cycle</p>
+                        <p><strong>Current Age = (Today - Purchase Date) / 365.25 days</strong></p>
+                        <p><strong>Next Refresh = Ceiling(Current Age / Cycle) × Cycle</strong></p>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>Modernisation Timeline</h4>
+                        <p><strong>Modernisation Start Year = Ceiling(Timeline in Months / 12)</strong></p>
+                        <p>Savings from node reduction and native Azure services begin after this period.</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Azure Cost Components</h3>
+                    
+                    <div class="formula-box">
+                        <h4>AVS Node Costs</h4>
+                        <p><strong>Monthly AVS Cost = Node Cost × Number of Nodes × Pricing Tier</strong></p>
+                        <p><strong>Pricing Tiers:</strong></p>
+                        <ul>
+                            <li>Pay-as-you-go: Full price</li>
+                            <li>1-Year Reserved: ~20% discount</li>
+                            <li>3-Year Reserved: ~40% discount</li>
+                        </ul>
+                        <p><strong>Azure Hybrid Benefit:</strong> ~40% additional savings on compute portion</p>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>Total Azure Annual Cost</h4>
+                        <p><strong>Annual Azure Cost = (AVS Nodes + Additional Services) × 12</strong></p>
+                        <p><strong>Additional Services:</strong> ExpressRoute + Backup + Data Transfer + Monitoring + Storage + Security</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Key Input Categories</h3>
+                    
+                    <div class="breakdown">
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Key Inputs</th>
+                                    <th>Impact on Calculation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Current Environment</strong></td>
+                                    <td>Cost method, hardware/software costs, staff costs, facilities</td>
+                                    <td>Determines baseline annual costs and hardware refresh schedule</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Hardware Refresh</strong></td>
+                                    <td>Purchase date, refresh cycle, cost multiplier, percentage</td>
+                                    <td>Calculates timing and cost of on-premises hardware refreshes</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Azure Configuration</strong></td>
+                                    <td>Node type, count, reserved terms, hybrid benefits</td>
+                                    <td>Determines base Azure VMware Solution costs</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Azure Services</strong></td>
+                                    <td>ExpressRoute, backup, monitoring, security services</td>
+                                    <td>Additional monthly Azure service costs</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Modernisation</strong></td>
+                                    <td>VMs to migrate, applications to modernise, timeline</td>
+                                    <td>Calculates savings from moving to native Azure services</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Migration Investment</strong></td>
+                                    <td>Assessment, tools, services, training, contingency</td>
+                                    <td>One-time costs that must be recovered through savings</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Analysis Parameters</strong></td>
+                                    <td>Time period, discount rate, growth rate</td>
+                                    <td>Controls NPV calculations and time value of money</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Assumptions and Limitations</h3>
+                    
+                    <div class="formula-box">
+                        <h4>Key Assumptions</h4>
+                        <ul>
+                            <li><strong>Fixed Cost Method:</strong> Hardware represents 50% of total costs</li>
+                            <li><strong>Staff Reduction:</strong> 30% reduction in staff costs with Azure (breakdown method)</li>
+                            <li><strong>Growth Rates:</strong> Applied equally to on-premises and Azure costs</li>
+                            <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
+                            <li><strong>Modernisation:</strong> Savings begin after modernisation timeline</li>
+                            <li><strong>Currency:</strong> All costs in GBP (£)</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4>Limitations</h4>
+                        <ul>
+                            <li>Does not include intangible benefits (agility, innovation, scalability)</li>
+                            <li>Azure pricing is estimated and may vary by region and contract terms</li>
+                            <li>Assumes steady-state operations after migration completion</li>
+                            <li>Does not account for business disruption during migration</li>
+                            <li>Hardware refresh timing assumes uniform equipment age</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div id="results" class="tab-content">
             <div class="section">
@@ -1213,7 +1398,31 @@
 
             const roi = ((totalBenefits - totalMigrationCosts) / totalMigrationCosts) * 100;
             const annualSavings = totalBenefits / inputs.analysis_period;
-            const paybackPeriod = totalMigrationCosts / annualSavings;
+            
+            // Calculate accurate payback period using cumulative discounted cash flows
+            function calculateAccuratePaybackPeriod(totalMigrationCosts, yearlyBreakdown, discountRate) {
+                let cumulativeDiscountedCashFlow = 0;
+                
+                for (let i = 0; i < yearlyBreakdown.length; i++) {
+                    const year = yearlyBreakdown[i];
+                    const discountedCashFlow = year.savings / Math.pow(1 + discountRate, year.year);
+                    cumulativeDiscountedCashFlow += discountedCashFlow;
+                    
+                    if (cumulativeDiscountedCashFlow >= totalMigrationCosts) {
+                        // Linear interpolation for more precise payback period
+                        const previousCumulative = cumulativeDiscountedCashFlow - discountedCashFlow;
+                        const remainingAmount = totalMigrationCosts - previousCumulative;
+                        const fractionOfYear = remainingAmount / discountedCashFlow;
+                        
+                        return (year.year - 1) + fractionOfYear;
+                    }
+                }
+                
+                // If payback period exceeds analysis period
+                return -1; // Indicates no payback within analysis period
+            }
+            
+            const paybackPeriod = calculateAccuratePaybackPeriod(totalMigrationCosts, yearlyBreakdown, discountRate);
 
             // Display results
             document.getElementById('roi-percentage').textContent = roi.toFixed(1) + '%';
@@ -1222,7 +1431,8 @@
             document.getElementById('npv-value').textContent = '£' + npv.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('npv-value').className = 'metric-value ' + (npv > 0 ? 'positive' : 'negative');
             
-            document.getElementById('payback-period').textContent = paybackPeriod.toFixed(1) + ' years';
+            document.getElementById('payback-period').textContent = paybackPeriod === -1 ? 
+                'No payback within analysis period' : paybackPeriod.toFixed(1) + ' years';
             document.getElementById('total-investment').textContent = '£' + totalMigrationCosts.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('total-benefits').textContent = '£' + totalBenefits.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('modernisation-savings').textContent = '£' + totalModernisationSavings.toLocaleString(undefined, {maximumFractionDigits: 0});
@@ -1289,7 +1499,7 @@
             
             // Switch to results tab
             showTab('results');
-            document.querySelector('.tab:nth-child(5)').classList.add('active');
+            document.querySelector('.tab:nth-child(6)').classList.add('active');
         }
     </script>
 </body>
