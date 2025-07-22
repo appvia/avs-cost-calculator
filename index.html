@@ -183,6 +183,62 @@
         .breakdown-table tr:hover {
             background: #f8f9fa;
         }
+        
+        .year-details {
+            display: none;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            padding: 15px;
+            margin: 0;
+        }
+        
+        .year-details.show {
+            display: block;
+        }
+        
+        .year-details h5 {
+            color: #0078d4;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .calculation-detail {
+            margin: 5px 0;
+            padding: 3px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .calculation-detail.formula {
+            background: #e3f2fd;
+            padding: 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .calculation-detail.result {
+            background: #d4edda;
+            padding: 5px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #155724;
+        }
+        
+        .expand-button {
+            background: none;
+            border: none;
+            color: #0078d4;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+        
+        .expand-button:hover {
+            background: #e3f2fd;
+        }
         .formula-box {
             background: #e3f2fd;
             border: 1px solid #0078d4;
@@ -372,20 +428,15 @@
                     <h3>Fixed Annual Cost</h3>
                     <div class="input-group">
                         <div class="input-field">
-                            <label>Total Annual Operational Cost (£)
+                            <label>Annual Hardware Costs (£)
                                 <span class="info-icon">i
-                                    <span class="tooltip">ONGOING annual operational costs only: support contracts, facilities, power, staff, connectivity. DO NOT include VMware licensing (handled separately) or depreciation of already-purchased hardware.</span>
+                                    <span class="tooltip">Total annual hardware costs including support, maintenance, facilities, power, and operational expenses. DO NOT include VMware licensing (handled separately).</span>
                                 </span>
                             </label>
-                            <input type="number" id="fixed_annual_cost" value="316000" step="5000">
+                            <input type="number" id="fixed_annual_cost" value="200000" step="5000">
                         </div>
                         <div class="input-field">
-                            <label>Hardware Support Costs (£)
-                                <span class="info-icon">i
-                                    <span class="tooltip">Annual hardware support contracts, maintenance agreements, and lease payments that will stop when migrating to cloud. Used for hardware refresh calculations.</span>
-                                </span>
-                            </label>
-                            <input type="number" id="fixed_hardware_support" value="50000" step="1000">
+                            <!-- Empty for grid alignment -->
                         </div>
                     </div>
                 </div>
@@ -1005,10 +1056,10 @@
                     
                     <div class="formula-box">
                         <h4>Method 1: Fixed Annual Cost</h4>
-                        <p>Uses separate inputs for operational costs and hardware support costs.</p>
-                        <p><strong>Focus on ONGOING costs only</strong> - support contracts, facilities, power, staff. Excludes sunk costs like hardware depreciation and VMware licensing (handled separately).</p>
-                        <p><strong>On-Premises Annual Cost = Fixed Annual Cost + VMware License Cost</strong></p>
-                        <p><strong>Hardware Support Costs = Manual Input</strong> (used for refresh calculations)</p>
+                        <p>Uses a single input for total annual hardware costs.</p>
+                        <p><strong>Simple approach</strong> - single annual hardware cost covering all operational expenses. VMware licensing handled separately.</p>
+                        <p><strong>On-Premises Annual Cost = Annual Hardware Cost + VMware License Cost</strong></p>
+                        <p><strong>Simplified comparison</strong> - all costs remain constant year over year</p>
                     </div>
 
                     <div class="formula-box">
@@ -1026,10 +1077,10 @@
                     <h3>Growth and Timing Calculations</h3>
                     
                     <div class="formula-box">
-                        <h4>Annual Cost Growth</h4>
-                        <p><strong>General Growth: Cost in Year t = Base Cost × (1 + Growth Rate)^(t-1)</strong></p>
+                        <h4>Simplified Cost Calculations</h4>
+                        <p><strong>Hardware Costs: Remain constant each year</strong></p>
                         <p><strong>VMware License Renewal: License cost depends on renewal date, migration timing, and commitment period</strong></p>
-                        <p>General growth applies to infrastructure and operational costs. VMware license costs are calculated based on renewal timing relative to migration completion, avoiding step-change price increases through migration.</p>
+                        <p>For simplified comparison, all costs remain constant each year. VMware license costs are calculated based on renewal timing relative to migration completion, avoiding step-change price increases through migration.</p>
                     </div>
 
                     <div class="formula-box">
@@ -1152,10 +1203,10 @@
                     <div class="formula-box">
                         <h4>Key Assumptions</h4>
                         <ul>
-                            <li><strong>Focus on Operational Costs:</strong> Excludes sunk costs like hardware depreciation, focuses on ongoing costs that actually stop when migrating</li>
-                            <li><strong>Fixed Cost Method:</strong> Hardware support costs are entered manually as a separate input</li>
+                            <li><strong>Simplified Approach:</strong> Single annual hardware cost input with constant costs</li>
+                            <li><strong>Fixed Cost Method:</strong> One input covers all hardware operational costs</li>
                             <li><strong>Staff Reduction:</strong> 30% reduction in staff costs with Azure (breakdown method)</li>
-                            <li><strong>Growth Rates:</strong> Applied equally to on-premises and Azure costs</li>
+                            <li><strong>Constant Costs:</strong> All costs remain the same each year for clear comparison</li>
                             <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
                             <li><strong>Modernisation:</strong> Savings begin after modernisation timeline</li>
                             <li><strong>Simple Calculations:</strong> No discounting or time value of money adjustments</li>
@@ -1185,7 +1236,7 @@
                     <h4>Financial Analysis Formulas</h4>
                     <p><strong>ROI = (Total Savings - Total Investment) / Total Investment × 100</strong></p>
                     <p><strong>Payback Period = Time when Cumulative Savings ≥ Total Investment</strong></p>
-                    <p><strong>Annual Growth = Cost in Year t = Base Cost × (1 + Growth Rate)^(t-1)</strong></p>
+                    <p><strong>Simplified Approach = All costs remain constant each year for clear comparison</strong></p>
                     <p><strong>License Renewal Timing = VMware cost depends on renewal date vs migration completion date</strong></p>
                     <p><em>Note: After calculation, detailed step-by-step breakdowns show exactly how each value was computed.</em></p>
                 </div>
@@ -1201,19 +1252,9 @@
                             </label>
                             <input type="number" id="analysis_period" value="5" step="1" min="1" max="10">
                         </div>
-
-                        <div class="input-field">
-                            <label>Annual Growth Rate (%)
-                                <span class="info-icon">i
-                                    <span class="tooltip">Expected annual growth in IT costs due to inflation, capacity growth, and business expansion.</span>
-                                </span>
-                            </label>
-                            <input type="number" id="growth_rate" value="3" step="0.5" min="0" max="15">
-                        </div>
                         <div class="input-field">
                             <!-- Empty for grid alignment -->
                         </div>
-
                     </div>
                 </div>
                 
@@ -1269,6 +1310,9 @@
                         </p>
                         <p style="color: #666; font-style: italic; margin-bottom: 15px;">
                             💡 <strong>VMware License Saved</strong> shows the amount you avoid paying by migrating to Azure instead of staying on-premises and paying VMware license costs.
+                        </p>
+                        <p style="color: #666; font-style: italic; margin-bottom: 15px;">
+                            📊 Click the <strong>"📊 Details"</strong> button next to any year to see the detailed calculation breakdown for that specific year.
                         </p>
                         <table class="breakdown-table">
                             <thead>
@@ -1411,7 +1455,6 @@
                 // Cost method and fixed cost
                 cost_method: costMethod,
                 fixed_annual_cost: parseFloat(document.getElementById('fixed_annual_cost').value) || 0,
-                fixed_hardware_support: parseFloat(document.getElementById('fixed_hardware_support').value) || 0,
                 
                 // Current environment costs (breakdown method)
                 hardware_cost: parseFloat(document.getElementById('hardware_cost').value) || 0,
@@ -1476,7 +1519,6 @@
                 
                 // Analysis parameters
                 analysis_period: parseInt(document.getElementById('analysis_period').value) || 5,
-                growth_rate: parseFloat(document.getElementById('growth_rate').value) || 3,
                 migration_timeline: parseInt(document.getElementById('migration_timeline').value) || 6
             };
 
@@ -1486,7 +1528,7 @@
             
             if (inputs.cost_method === 'fixed') {
                 baseAnnualOnPremCosts = inputs.fixed_annual_cost;
-                hardwareRelatedCosts = inputs.fixed_hardware_support;
+                hardwareRelatedCosts = inputs.fixed_annual_cost; // Use same value for hardware refresh calculations
             } else {
                 baseAnnualOnPremCosts = inputs.hardware_cost + inputs.vmware_licensing + 
                     inputs.storage_hardware + inputs.network_equipment + inputs.backup_hardware + 
@@ -1550,7 +1592,6 @@
             // Calculate savings and ROI with modernisation timeline
             let totalBenefits = 0;
             let totalModernisationSavings = 0;
-            const growthRate = inputs.growth_rate / 100;
             const modernisationStartYear = Math.ceil(inputs.modernisation_timeline / 12);
 
             // Helper function to calculate VMware license cost for a given year
@@ -1593,7 +1634,7 @@
                     }
                 }
                 
-                return (annualLicenseCost * licenseMonths / 12) * Math.pow(1 + growthRate, year - 1);
+                return (annualLicenseCost * licenseMonths / 12);
             }
 
             // Helper function to calculate what VMware license cost WOULD BE if no migration occurred
@@ -1623,7 +1664,7 @@
                     }
                 }
                 
-                return annualLicenseCost * Math.pow(1 + growthRate, year - 1);
+                return annualLicenseCost;
             }
 
             const yearlyBreakdown = [];
@@ -1637,31 +1678,31 @@
                 let yearlyOnPremCost;
                 if (inputs.cost_method === 'fixed') {
                     // For fixed method, VMware licensing is handled separately
-                    yearlyOnPremCost = baseAnnualOnPremCosts * Math.pow(1 + growthRate, year - 1) + vmwareLicenseCost;
+                    yearlyOnPremCost = baseAnnualOnPremCosts + vmwareLicenseCost;
                 } else {
                     // For breakdown method, exclude vmware_licensing and add calculated cost
                     const infrastructureCosts = inputs.hardware_cost + inputs.storage_hardware + inputs.network_equipment + 
                         inputs.backup_hardware + inputs.support_contracts + inputs.datacenter_space + inputs.power_cooling + 
                         inputs.staff_costs + inputs.connectivity;
                     
-                    yearlyOnPremCost = infrastructureCosts * Math.pow(1 + growthRate, year - 1) + vmwareLicenseCost;
+                    yearlyOnPremCost = infrastructureCosts + vmwareLicenseCost;
                 }
                 
                 // Add hardware refresh costs if they occur this year
                 const refreshCost = calculateRefreshCosts(year);
                 yearlyOnPremCost += refreshCost;
                 
-                let yearlyAzureCost = annualAzureCosts * Math.pow(1 + growthRate, year - 1);
+                let yearlyAzureCost = annualAzureCosts;
                 let modernisationSavingsThisYear = 0;
 
                 // Apply modernisation savings after the modernisation timeline
                 if (year >= modernisationStartYear) {
                     // Reduce AVS costs by saved nodes
                     const nodeCostPerYear = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * 12;
-                    const nodesSavings = inputs.nodes_saved * nodeCostPerYear * Math.pow(1 + growthRate, year - 1);
+                    const nodesSavings = inputs.nodes_saved * nodeCostPerYear;
                     
                     // Add native Azure service costs
-                    const additionalAzureCosts = annualModernisationServiceCosts * Math.pow(1 + growthRate, year - 1);
+                    const additionalAzureCosts = annualModernisationServiceCosts;
                     
                     modernisationSavingsThisYear = nodesSavings - additionalAzureCosts;
                     yearlyAzureCost -= nodesSavings;
@@ -1693,7 +1734,7 @@
                 });
             }
 
-            const roi = ((totalBenefits - totalMigrationCosts) / totalMigrationCosts) * 100;
+            const roi = totalMigrationCosts > 0 ? ((totalBenefits - totalMigrationCosts) / totalMigrationCosts) * 100 : 0;
             const annualSavings = totalBenefits / inputs.analysis_period;
             
             // Calculate simple payback period using cumulative savings
@@ -1751,9 +1792,18 @@
             const yearlyTable = document.getElementById('yearly-breakdown');
             yearlyTable.innerHTML = '';
             let paybackYearFound = false;
-            yearlyBreakdown.forEach(year => {
+            yearlyBreakdown.forEach((year, index) => {
                 const row = yearlyTable.insertRow();
-                row.insertCell(0).textContent = year.year;
+                
+                // Year column with expand button
+                const yearCell = row.insertCell(0);
+                yearCell.innerHTML = `
+                    Year ${year.year}
+                    <button class="expand-button" onclick="toggleYearDetails(${index})" id="expand-btn-${index}">
+                        📊 Details
+                    </button>
+                `;
+                
                 row.insertCell(1).textContent = '£' + year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0});
                 
                 const refreshCell = row.insertCell(2);
@@ -1795,6 +1845,13 @@
                     paybackIndicator.style.marginTop = '5px';
                     cumulativeCell.appendChild(paybackIndicator);
                 }
+                
+                // Add detailed breakdown row
+                const detailRow = yearlyTable.insertRow();
+                const detailCell = detailRow.insertCell(0);
+                detailCell.colSpan = 8;
+                detailCell.innerHTML = createYearDetailsHTML(year, inputs, index);
+                detailCell.style.padding = '0';
             });
 
             // Populate cost breakdown table
@@ -1845,8 +1902,7 @@
             
             if (inputs.cost_method === 'fixed') {
                 detailsHtml += `
-                    <div class="calculation-step">Fixed Annual Operational Cost = £${inputs.fixed_annual_cost.toLocaleString()}</div>
-                    <div class="calculation-step">Hardware Support Costs = £${inputs.fixed_hardware_support.toLocaleString()}</div>
+                    <div class="calculation-step">Annual Hardware Costs = £${inputs.fixed_annual_cost.toLocaleString()}</div>
                     <div class="calculation-step">Note: VMware licensing costs are calculated separately based on renewal timing</div>
                 `;
             } else {
@@ -1905,17 +1961,15 @@
                  </div>
              `;
 
-            // Growth rates section
+            // License renewal section
             detailsHtml += `
                 <div class="calculation-section">
-                    <h4>4. Growth Rate & License Renewal Timing</h4>
-                    <div class="calculation-step">General Growth Rate = ${inputs.growth_rate}% per year</div>
+                    <h4>4. License Renewal Timing</h4>
                     <div class="calculation-step">VMware License Renewal Date = ${inputs.license_renewal_date}</div>
                     <div class="calculation-step">Current License Cost = £${inputs.current_vmware_cost.toLocaleString()}/year</div>
                     <div class="calculation-step">Expected New License Cost = £${inputs.new_vmware_cost.toLocaleString()}/year</div>
                     <div class="calculation-step">Migration Timeline = ${inputs.migration_timeline} months</div>
-                    <div class="calculation-formula">On-Premises Cost considers license renewal timing and migration completion date</div>
-                    <div class="calculation-formula">Azure Year t = Base Cost × (1 + ${inputs.growth_rate/100})^(t-1)</div>
+                    <div class="calculation-formula">All costs remain constant each year for simplified comparison</div>
                 </div>
             `;
 
@@ -1941,7 +1995,7 @@
                     <div class="calculation-step">2. <strong>Would-Have-Paid Cost:</strong> What you'd pay if no migration</div>
                     <div class="calculation-step">   • Always calculates full year cost</div>
                     <div class="calculation-step">   • Uses new license cost after renewal date</div>
-                    <div class="calculation-step">   • Applied with growth rate each year</div>
+                    <div class="calculation-step">   • Remains constant each year</div>
                     
                     <div class="calculation-formula"><strong>VMware License Saved = Would-Have-Paid - Actual Cost</strong></div>
                     
@@ -1949,7 +2003,7 @@
                     <div class="calculation-step">• Before renewal date: Use current license cost (£${inputs.current_vmware_cost.toLocaleString()})</div>
                     <div class="calculation-step">• After renewal date: Use new license cost (£${inputs.new_vmware_cost.toLocaleString()})</div>
                     <div class="calculation-step">• Migration timing determines how much you actually pay</div>
-                    <div class="calculation-step">• Growth rate applied to both scenarios</div>
+                    <div class="calculation-step">• All costs remain constant year over year</div>
                 </div>
             `;
 
@@ -1993,6 +2047,111 @@
             // Switch to results tab
             showTab('results');
             document.querySelector('.tab:nth-child(6)').classList.add('active');
+        }
+
+        function createYearDetailsHTML(year, inputs, index) {
+            // Calculate VMware license costs for this year
+            const currentDate = new Date();
+            const renewalDate = new Date(inputs.license_renewal_date);
+            const migrationCompletionDate = new Date(currentDate);
+            migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+            
+            const yearStartDate = new Date(currentDate);
+            yearStartDate.setFullYear(yearStartDate.getFullYear() + year.year - 1);
+            const yearEndDate = new Date(yearStartDate);
+            yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
+            
+            // Calculate what license cost applies
+            let wouldHaveBeenLicenseCost = inputs.current_vmware_cost;
+            if (renewalDate <= yearStartDate) {
+                wouldHaveBeenLicenseCost = inputs.new_vmware_cost;
+            } else if (renewalDate > yearStartDate && renewalDate <= yearEndDate) {
+                const monthsOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
+                const monthsNewPrice = 12 - monthsOldPrice;
+                wouldHaveBeenLicenseCost = (inputs.current_vmware_cost * monthsOldPrice + inputs.new_vmware_cost * monthsNewPrice) / 12;
+            }
+            
+            // Calculate actual license cost (considering migration)
+            let actualLicenseCost = 0;
+            if (migrationCompletionDate > yearStartDate) {
+                let licenseMonths = 12;
+                if (migrationCompletionDate < yearEndDate) {
+                    licenseMonths = (migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
+                }
+                actualLicenseCost = (wouldHaveBeenLicenseCost * licenseMonths / 12);
+            }
+            
+            return `
+                <div class="year-details" id="year-details-${index}">
+                    <h5>Year ${year.year} Detailed Calculation Breakdown</h5>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <strong>📊 On-Premises Costs:</strong>
+                            <div class="calculation-detail">Annual Hardware Cost: £${inputs.fixed_annual_cost.toLocaleString()}</div>
+                            <div class="calculation-detail">VMware License (Actual): £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            ${year.refreshCost > 0 ? `<div class="calculation-detail">Hardware Refresh: £${year.refreshCost.toLocaleString()}</div>` : ''}
+                            <div class="calculation-detail formula">Total On-Premises = £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            
+                            <br><strong>💰 VMware License Savings:</strong>
+                            <div class="calculation-detail">Would Have Paid: £${wouldHaveBeenLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            <div class="calculation-detail">Actually Paid: £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            <div class="calculation-detail formula">License Saved = £${year.licenseCostAvoidance.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        </div>
+                        
+                        <div>
+                            <strong>☁️ Azure Costs:</strong>
+                            <div class="calculation-detail">AVS Nodes (${inputs.avs_node_type} x ${inputs.avs_nodes}): £${calculateAVSNodeCost(inputs).toLocaleString()}</div>
+                            <div class="calculation-detail">Additional Services: £${((inputs.expressroute + inputs.azure_backup + inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services) * 12).toLocaleString()}</div>
+                            ${year.modernisationSavings !== 0 ? `<div class="calculation-detail">Modernisation Impact: £${year.modernisationSavings.toLocaleString()}</div>` : ''}
+                            <div class="calculation-detail formula">Total Azure = £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            
+                            <br><strong>📈 Year ${year.year} Summary:</strong>
+                            <div class="calculation-detail">On-Premises: £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            <div class="calculation-detail">Azure: £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            <div class="calculation-detail result">Annual Savings = £${year.savings.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            <div class="calculation-detail result">Cumulative Savings = £${year.cumulative.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        </div>
+                    </div>
+                    
+                    ${migrationCompletionDate < yearEndDate && migrationCompletionDate > yearStartDate ? 
+                        `<div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 5px;">
+                            <strong>🔄 Migration Impact:</strong> Migration completes ${migrationCompletionDate.toDateString()}, 
+                            so VMware license is prorated for ${Math.round((migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44))} months.
+                        </div>` : ''}
+                </div>
+            `;
+        }
+
+        function calculateAVSNodeCost(inputs) {
+            const nodeCosts = {
+                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
+                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
+                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
+                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
+            };
+            
+            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes;
+            
+            // Apply Azure Hybrid Benefit (approximately 40% savings on compute)
+            if (inputs.hybrid_benefit === 'yes') {
+                monthlyAvsNodeCost *= 0.6;
+            }
+            
+            return monthlyAvsNodeCost * 12;
+        }
+
+        function toggleYearDetails(index) {
+            const details = document.getElementById(`year-details-${index}`);
+            const button = document.getElementById(`expand-btn-${index}`);
+            
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                button.textContent = '📊 Details';
+            } else {
+                details.classList.add('show');
+                button.textContent = '📊 Hide';
+            }
         }
 
         // Local Storage Functions to save/restore form data
