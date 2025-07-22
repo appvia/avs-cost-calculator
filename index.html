@@ -1187,11 +1187,16 @@
                                     <td>VMs to migrate, applications to modernise, timeline</td>
                                     <td>Calculates savings from moving to native Azure services</td>
                                 </tr>
-                                <tr>
-                                    <td><strong>Migration Investment</strong></td>
-                                    <td>Assessment, tools, services, training, contingency</td>
-                                    <td>One-time costs that must be recovered through savings</td>
-                                </tr>
+                                                        <tr>
+                            <td><strong>Migration Investment</strong></td>
+                            <td>Assessment, tools, services, training, contingency</td>
+                            <td>One-time costs that must be recovered through savings</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Migration Timeline</strong></td>
+                            <td>Start date, duration in months</td>
+                            <td>Determines when cost savings begin and VMware license obligations end</td>
+                        </tr>
                                 <tr>
                                     <td><strong>Partner Funding</strong></td>
                                     <td>Microsoft funding, Azure credits, services funding, training funding</td>
@@ -1217,6 +1222,7 @@
                             <li><strong>Fixed Cost Method:</strong> One input covers all hardware operational costs</li>
                             <li><strong>Staff Reduction:</strong> 30% reduction in staff costs with Azure (breakdown method)</li>
                             <li><strong>Constant Costs:</strong> All costs remain the same each year for clear comparison</li>
+                            <li><strong>Migration Timing:</strong> Cost savings begin when migration completes based on start date and duration</li>
                             <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
                             <li><strong>Modernisation:</strong> Savings begin after modernisation timeline</li>
                             <li><strong>Simple Calculations:</strong> No discounting or time value of money adjustments</li>
@@ -1372,7 +1378,16 @@
     <script>
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default migration start date to 30 days from today if not already set
+            const migrationStartInput = document.getElementById('migration_start_date');
+            if (!migrationStartInput.value) {
+                const defaultStartDate = new Date();
+                defaultStartDate.setDate(defaultStartDate.getDate() + 30);
+                migrationStartInput.value = defaultStartDate.toISOString().split('T')[0];
+            }
+            
             updateRefreshSchedule();
+            updateMigrationSchedule();
         });
 
         function showTab(tabName) {
@@ -1448,12 +1463,62 @@
              document.getElementById('refresh-schedule-text').textContent = scheduleText;
          }
 
+         function updateMigrationSchedule() {
+             const migrationStartInput = document.getElementById('migration_start_date');
+             const migrationTimelineInput = document.getElementById('migration_timeline');
+             
+             if (!migrationStartInput.value || !migrationTimelineInput.value) {
+                 document.getElementById('migration-schedule-text').textContent = 'Configure migration start date and duration above to see the timeline.';
+                 return;
+             }
+
+             const migrationStartDate = new Date(migrationStartInput.value);
+             const migrationDuration = parseInt(migrationTimelineInput.value);
+             const migrationCompletionDate = new Date(migrationStartDate);
+             migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + migrationDuration);
+             
+             const currentDate = new Date();
+             const daysUntilStart = Math.ceil((migrationStartDate - currentDate) / (1000 * 60 * 60 * 24));
+             
+             let scheduleText = '';
+             
+             if (daysUntilStart > 0) {
+                 scheduleText += `Migration starts in ${daysUntilStart} days (${migrationStartDate.toDateString()}). `;
+             } else if (daysUntilStart < 0) {
+                 scheduleText += `Migration was scheduled to start ${Math.abs(daysUntilStart)} days ago (${migrationStartDate.toDateString()}). `;
+             } else {
+                 scheduleText += `Migration starts today (${migrationStartDate.toDateString()}). `;
+             }
+             
+             scheduleText += `Duration: ${migrationDuration} months. `;
+             scheduleText += `Completion: ${migrationCompletionDate.toDateString()}.`;
+             
+             // Add license renewal interaction
+             const licenseRenewalInput = document.getElementById('license_renewal_date');
+             if (licenseRenewalInput.value) {
+                 const licenseRenewalDate = new Date(licenseRenewalInput.value);
+                 
+                 if (migrationCompletionDate <= licenseRenewalDate) {
+                     scheduleText += ` ✅ Migration completes BEFORE license renewal - avoiding price increases!`;
+                 } else {
+                     scheduleText += ` ⚠️ Migration completes AFTER license renewal - some increased costs unavoidable.`;
+                 }
+             }
+             
+             document.getElementById('migration-schedule-text').textContent = scheduleText;
+         }
+
          // Add event listeners for refresh schedule updates
          document.addEventListener('DOMContentLoaded', function() {
              document.getElementById('hardware_purchase_date').addEventListener('change', updateRefreshSchedule);
              document.getElementById('refresh_cycle_years').addEventListener('input', updateRefreshSchedule);
              document.getElementById('refresh_percentage').addEventListener('input', updateRefreshSchedule);
              document.getElementById('refresh_cost_multiplier').addEventListener('input', updateRefreshSchedule);
+             
+             // Migration schedule event listeners
+             document.getElementById('migration_start_date').addEventListener('change', updateMigrationSchedule);
+             document.getElementById('migration_timeline').addEventListener('input', updateMigrationSchedule);
+             document.getElementById('license_renewal_date').addEventListener('change', updateMigrationSchedule);
          });
 
         function calculateROI() {
@@ -1529,7 +1594,8 @@
                 
                 // Analysis parameters
                 analysis_period: parseInt(document.getElementById('analysis_period').value) || 5,
-                migration_timeline: parseInt(document.getElementById('migration_timeline').value) || 6
+                migration_timeline: parseInt(document.getElementById('migration_timeline').value) || 6,
+                migration_start_date: document.getElementById('migration_start_date').value
             };
 
             // Calculate annual on-premises costs based on method
@@ -1608,8 +1674,17 @@
             function calculateVMwareLicenseCost(year) {
                 const currentDate = new Date();
                 const renewalDate = new Date(inputs.license_renewal_date);
-                const migrationCompletionDate = new Date(currentDate);
-                migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+                
+                // Calculate migration completion date based on start date
+                let migrationCompletionDate;
+                if (inputs.migration_start_date) {
+                    migrationCompletionDate = new Date(inputs.migration_start_date);
+                    migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+                } else {
+                    // Fallback to current behavior if no start date specified
+                    migrationCompletionDate = new Date(currentDate);
+                    migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+                }
                 
                 const yearStartDate = new Date(currentDate);
                 yearStartDate.setFullYear(yearStartDate.getFullYear() + year - 1);
@@ -1984,36 +2059,47 @@
             `;
 
             // VMware License Calculation Details
-            // Reuse existing date calculations
             const vmwareRenewalDate = new Date(inputs.license_renewal_date);
-            const vmwareMigrationCompletionDate = new Date();
-            vmwareMigrationCompletionDate.setMonth(vmwareMigrationCompletionDate.getMonth() + inputs.migration_timeline);
+            let vmwareMigrationStartDate, vmwareMigrationCompletionDate;
+            
+            if (inputs.migration_start_date) {
+                vmwareMigrationStartDate = new Date(inputs.migration_start_date);
+                vmwareMigrationCompletionDate = new Date(inputs.migration_start_date);
+                vmwareMigrationCompletionDate.setMonth(vmwareMigrationCompletionDate.getMonth() + inputs.migration_timeline);
+            } else {
+                vmwareMigrationStartDate = new Date();
+                vmwareMigrationCompletionDate = new Date();
+                vmwareMigrationCompletionDate.setMonth(vmwareMigrationCompletionDate.getMonth() + inputs.migration_timeline);
+            }
             
             detailsHtml += `
                 <div class="calculation-section">
                     <h4>4A. VMware License Cost Calculation Details</h4>
                     <div class="calculation-step">Current Date = ${new Date().toDateString()}</div>
-                    <div class="calculation-step">License Renewal Date = ${vmwareRenewalDate.toDateString()}</div>
+                    <div class="calculation-step">Migration Start Date = ${vmwareMigrationStartDate.toDateString()}</div>
+                    <div class="calculation-step">Migration Duration = ${inputs.migration_timeline} months</div>
                     <div class="calculation-step">Migration Completion Date = ${vmwareMigrationCompletionDate.toDateString()}</div>
+                    <div class="calculation-step">License Renewal Date = ${vmwareRenewalDate.toDateString()}</div>
+                    <div class="calculation-step">Current License Cost = £${inputs.current_vmware_cost.toLocaleString()}/year</div>
+                    <div class="calculation-step">New License Cost (after renewal) = £${inputs.new_vmware_cost.toLocaleString()}/year</div>
+                    <div class="calculation-step">License Cost Per Day (current) = £${inputs.current_vmware_cost.toLocaleString()} ÷ 365 = £${(inputs.current_vmware_cost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
+                    <div class="calculation-step">License Cost Per Day (new) = £${inputs.new_vmware_cost.toLocaleString()} ÷ 365 = £${(inputs.new_vmware_cost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
                     
-                    <div class="calculation-formula"><strong>Two Scenarios Calculated:</strong></div>
+                    <div class="calculation-formula"><strong>Two Scenarios Calculated Each Year:</strong></div>
                     <div class="calculation-step">1. <strong>Actual License Cost:</strong> What you actually pay (considers migration timing)</div>
+                    <div class="calculation-step">   • Migration completion determines when license obligations end</div>
                     <div class="calculation-step">   • If migration completes before year start: £0</div>
-                    <div class="calculation-step">   • If migration completes during year: Prorated cost</div>
-                    <div class="calculation-step">   • Considers renewal date vs migration date</div>
+                    <div class="calculation-step">   • If migration completes during year: Prorated based on days</div>
+                    <div class="calculation-step">   • Formula: (License Cost Per Day) × (Days Before Migration Completes)</div>
                     
-                    <div class="calculation-step">2. <strong>Would-Have-Paid Cost:</strong> What you'd pay if no migration</div>
-                    <div class="calculation-step">   • Always calculates full year cost</div>
-                    <div class="calculation-step">   • Uses new license cost after renewal date</div>
-                    <div class="calculation-step">   • Remains constant each year</div>
+                    <div class="calculation-step">2. <strong>Would-Have-Paid Cost:</strong> What you'd pay if no migration (baseline)</div>
+                    <div class="calculation-step">   • Always calculates full year cost (365 days)</div>
+                    <div class="calculation-step">   • Uses appropriate license cost based on renewal date</div>
+                    <div class="calculation-step">   • Before renewal: £${(inputs.current_vmware_cost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × 365 = £${inputs.current_vmware_cost.toLocaleString()}</div>
+                    <div class="calculation-step">   • After renewal: £${(inputs.new_vmware_cost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × 365 = £${inputs.new_vmware_cost.toLocaleString()}</div>
                     
                     <div class="calculation-formula"><strong>VMware License Saved = Would-Have-Paid - Actual Cost</strong></div>
-                    
-                    <div class="calculation-step"><strong>Key Logic:</strong></div>
-                    <div class="calculation-step">• Before renewal date: Use current license cost (£${inputs.current_vmware_cost.toLocaleString()})</div>
-                    <div class="calculation-step">• After renewal date: Use new license cost (£${inputs.new_vmware_cost.toLocaleString()})</div>
-                    <div class="calculation-step">• Migration timing determines how much you actually pay</div>
-                    <div class="calculation-step">• All costs remain constant year over year</div>
+                    <div class="calculation-formula"><strong>This shows the license cost avoided by migrating to Azure</strong></div>
                 </div>
             `;
 
@@ -2063,77 +2149,165 @@
             // Calculate VMware license costs for this year
             const currentDate = new Date();
             const renewalDate = new Date(inputs.license_renewal_date);
-            const migrationCompletionDate = new Date(currentDate);
-            migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+            
+            // Calculate migration dates
+            let migrationStartDate, migrationCompletionDate;
+            if (inputs.migration_start_date) {
+                migrationStartDate = new Date(inputs.migration_start_date);
+                migrationCompletionDate = new Date(inputs.migration_start_date);
+                migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+            } else {
+                // Fallback to current behavior if no start date specified
+                migrationStartDate = new Date(currentDate);
+                migrationCompletionDate = new Date(currentDate);
+                migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
+            }
             
             const yearStartDate = new Date(currentDate);
             yearStartDate.setFullYear(yearStartDate.getFullYear() + year.year - 1);
             const yearEndDate = new Date(yearStartDate);
             yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
             
-            // Calculate what license cost applies
+            // Calculate total days in this year
+            const totalDaysInYear = (yearEndDate - yearStartDate) / (1000 * 60 * 60 * 24);
+            
+            // Determine which license cost applies for "would have paid" scenario
             let wouldHaveBeenLicenseCost = inputs.current_vmware_cost;
+            let licenseRenewalCalculation = '';
+            
             if (renewalDate <= yearStartDate) {
                 wouldHaveBeenLicenseCost = inputs.new_vmware_cost;
+                licenseRenewalCalculation = `Renewal date (${renewalDate.toDateString()}) is before year start, using new license cost: £${inputs.new_vmware_cost.toLocaleString()}`;
             } else if (renewalDate > yearStartDate && renewalDate <= yearEndDate) {
-                const monthsOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
-                const monthsNewPrice = 12 - monthsOldPrice;
-                wouldHaveBeenLicenseCost = (inputs.current_vmware_cost * monthsOldPrice + inputs.new_vmware_cost * monthsNewPrice) / 12;
+                const daysOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24);
+                const daysNewPrice = totalDaysInYear - daysOldPrice;
+                wouldHaveBeenLicenseCost = (inputs.current_vmware_cost * daysOldPrice + inputs.new_vmware_cost * daysNewPrice) / totalDaysInYear;
+                licenseRenewalCalculation = `Renewal occurs during year on ${renewalDate.toDateString()}:
+                • Days at old price (${daysOldPrice.toFixed(0)} days): £${inputs.current_vmware_cost.toLocaleString()} × ${daysOldPrice.toFixed(0)}/365 = £${((inputs.current_vmware_cost * daysOldPrice) / totalDaysInYear).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                • Days at new price (${daysNewPrice.toFixed(0)} days): £${inputs.new_vmware_cost.toLocaleString()} × ${daysNewPrice.toFixed(0)}/365 = £${((inputs.new_vmware_cost * daysNewPrice) / totalDaysInYear).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                • Weighted average: £${wouldHaveBeenLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            } else {
+                licenseRenewalCalculation = `Renewal date (${renewalDate.toDateString()}) is after year end, using current license cost: £${inputs.current_vmware_cost.toLocaleString()}`;
             }
             
             // Calculate actual license cost (considering migration)
             let actualLicenseCost = 0;
-            if (migrationCompletionDate > yearStartDate) {
-                let licenseMonths = 12;
-                if (migrationCompletionDate < yearEndDate) {
-                    licenseMonths = (migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
-                }
-                actualLicenseCost = (wouldHaveBeenLicenseCost * licenseMonths / 12);
+            let actualLicenseCalculation = '';
+            let licenseDaysUsed = 0;
+            
+            if (migrationCompletionDate <= yearStartDate) {
+                actualLicenseCalculation = `Migration completed before year start (${migrationCompletionDate.toDateString()}), no VMware license cost for this year.`;
+            } else if (migrationCompletionDate >= yearEndDate) {
+                licenseDaysUsed = totalDaysInYear;
+                actualLicenseCost = wouldHaveBeenLicenseCost;
+                actualLicenseCalculation = `Migration completes after year end (${migrationCompletionDate.toDateString()}), full year license cost applies:
+                • License cost per day: £${wouldHaveBeenLicenseCost.toLocaleString()} ÷ 365 = £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                • Days used: ${licenseDaysUsed.toFixed(0)} days
+                • Total cost: £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × ${licenseDaysUsed.toFixed(0)} = £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            } else {
+                licenseDaysUsed = (migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24);
+                actualLicenseCost = (wouldHaveBeenLicenseCost * licenseDaysUsed) / totalDaysInYear;
+                actualLicenseCalculation = `Migration completes during year (${migrationCompletionDate.toDateString()}):
+                • Migration start: ${migrationStartDate.toDateString()}
+                • Migration duration: ${inputs.migration_timeline} months
+                • Migration completion: ${migrationCompletionDate.toDateString()}
+                • Year starts: ${yearStartDate.toDateString()}
+                • Days with VMware license: ${licenseDaysUsed.toFixed(0)} days (from year start to migration completion)
+                • License cost per day: £${wouldHaveBeenLicenseCost.toLocaleString()} ÷ 365 = £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                • Prorated cost: £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × ${licenseDaysUsed.toFixed(0)} = £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
             }
             
+            const licenseDaysSaved = totalDaysInYear - licenseDaysUsed;
+            const licenseCostSaved = wouldHaveBeenLicenseCost - actualLicenseCost;
+            
+            // Calculate Azure cost breakdown
+            const avsNodeCostAnnual = calculateAVSNodeCost(inputs);
+            const additionalServicesAnnual = (inputs.expressroute + inputs.azure_backup + inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services) * 12;
+            
+            // Calculate hardware refresh details if applicable
+            let hardwareRefreshDetails = '';
+            if (year.refreshCost > 0) {
+                const refreshPercentageDecimal = inputs.refresh_percentage / 100;
+                hardwareRefreshDetails = `
+                    <strong>🔧 Hardware Refresh Calculation:</strong>
+                    <div class="calculation-detail">Hardware base cost: £${inputs.fixed_annual_cost.toLocaleString()}</div>
+                    <div class="calculation-detail">Refresh percentage: ${inputs.refresh_percentage}% = ${refreshPercentageDecimal}</div>
+                    <div class="calculation-detail">Cost multiplier: ${inputs.refresh_cost_multiplier} (${((inputs.refresh_cost_multiplier - 1) * 100).toFixed(0)}% increase)</div>
+                    <div class="calculation-detail">Refresh cost calculation: £${inputs.fixed_annual_cost.toLocaleString()} × ${refreshPercentageDecimal} × ${inputs.refresh_cost_multiplier} = £${year.refreshCost.toLocaleString()}</div>
+                    <br>`;
+            }
+
             return `
                 <div class="year-details" id="year-details-${index}">
-                    <h5>Year ${year.year} Detailed Calculation Breakdown</h5>
+                    <h5>Year ${year.year} Complete Calculation Breakdown</h5>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>📅 Migration Timeline Details:</strong>
+                        <div class="calculation-detail">Migration start date: ${migrationStartDate.toDateString()}</div>
+                        <div class="calculation-detail">Migration duration: ${inputs.migration_timeline} months</div>
+                        <div class="calculation-detail">Migration completion: ${migrationCompletionDate.toDateString()}</div>
+                        <div class="calculation-detail">Year ${year.year} period: ${yearStartDate.toDateString()} to ${yearEndDate.toDateString()}</div>
+                        <div class="calculation-detail">Total days in year: ${totalDaysInYear.toFixed(0)} days</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+                        <strong>💰 VMware License "Would Have Paid" Calculation:</strong>
+                        <div class="calculation-detail" style="white-space: pre-line;">${licenseRenewalCalculation}</div>
+                        <div class="calculation-detail formula">Would have paid for full year: £${wouldHaveBeenLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #d4edda; border-radius: 5px;">
+                        <strong>💰 VMware License "Actually Paid" Calculation:</strong>
+                        <div class="calculation-detail" style="white-space: pre-line;">${actualLicenseCalculation}</div>
+                        <div class="calculation-detail formula">Actually paid: £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div class="calculation-detail result">License days saved: ${licenseDaysSaved.toFixed(0)} days</div>
+                        <div class="calculation-detail result">License cost saved: £${licenseCostSaved.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                    </div>
+                    
+                    ${hardwareRefreshDetails}
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <strong>📊 On-Premises Costs:</strong>
-                            <div class="calculation-detail">Annual Hardware Cost: £${inputs.fixed_annual_cost.toLocaleString()}</div>
-                            <div class="calculation-detail">VMware License (Actual): £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            ${year.refreshCost > 0 ? `<div class="calculation-detail">Hardware Refresh: £${year.refreshCost.toLocaleString()}</div>` : ''}
-                            <div class="calculation-detail formula">Total On-Premises = £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            
-                            <br><strong>💰 VMware License Savings:</strong>
-                            <div class="calculation-detail">Would Have Paid: £${wouldHaveBeenLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            <div class="calculation-detail">Actually Paid: £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            <div class="calculation-detail formula">License Saved = £${year.licenseCostAvoidance.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div style="padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                            <strong>📊 On-Premises Costs Breakdown:</strong>
+                            <div class="calculation-detail">Base annual hardware cost: £${inputs.fixed_annual_cost.toLocaleString()}</div>
+                            <div class="calculation-detail">VMware license (actual): £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                            ${year.refreshCost > 0 ? `<div class="calculation-detail">Hardware refresh: £${year.refreshCost.toLocaleString()}</div>` : ''}
+                            <div class="calculation-detail formula">Total On-Premises = £${inputs.fixed_annual_cost.toLocaleString()} + £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})} ${year.refreshCost > 0 ? `+ £${year.refreshCost.toLocaleString()}` : ''} = £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
                         </div>
                         
-                        <div>
-                            <strong>☁️ Azure Costs:</strong>
-                            <div class="calculation-detail">AVS Nodes (${inputs.avs_node_type} x ${inputs.avs_nodes}): £${calculateAVSNodeCost(inputs).toLocaleString()}</div>
-                            <div class="calculation-detail">Additional Services: £${((inputs.expressroute + inputs.azure_backup + inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services) * 12).toLocaleString()}</div>
-                            ${year.modernisationSavings !== 0 ? `<div class="calculation-detail">Modernisation Impact: £${year.modernisationSavings.toLocaleString()}</div>` : ''}
-                            <div class="calculation-detail formula">Total Azure = £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            
-                            <br><strong>📈 Year ${year.year} Summary:</strong>
-                            <div class="calculation-detail">On-Premises: £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            <div class="calculation-detail">Azure: £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            <div class="calculation-detail result">Annual Savings = £${year.savings.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
-                            <div class="calculation-detail result">Cumulative Savings = £${year.cumulative.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div style="padding: 15px; background: #e8f5e8; border-radius: 5px;">
+                            <strong>☁️ Azure Costs Breakdown:</strong>
+                            <div class="calculation-detail">AVS nodes (${inputs.avs_node_type} × ${inputs.avs_nodes}): £${avsNodeCostAnnual.toLocaleString()}</div>
+                            <div class="calculation-detail">  • Node cost calculation details:</div>
+                            <div class="calculation-detail">    - Base monthly cost per node: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()}</div>
+                            <div class="calculation-detail">    - Reserved term discount: ${inputs.reserved_term}</div>
+                            ${inputs.hybrid_benefit === 'yes' ? `<div class="calculation-detail">    - Azure Hybrid Benefit: 40% savings applied</div>` : ''}
+                            <div class="calculation-detail">    - Annual cost: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()} × ${inputs.avs_nodes} × 12 = £${avsNodeCostAnnual.toLocaleString()}</div>
+                            <div class="calculation-detail">Additional services breakdown:</div>
+                            <div class="calculation-detail">  • ExpressRoute: £${inputs.expressroute.toLocaleString()} × 12 = £${(inputs.expressroute * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">  • Backup: £${inputs.azure_backup.toLocaleString()} × 12 = £${(inputs.azure_backup * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">  • Data transfer: £${inputs.data_transfer.toLocaleString()} × 12 = £${(inputs.data_transfer * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">  • Monitoring: £${inputs.monitoring.toLocaleString()} × 12 = £${(inputs.monitoring * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">  • Additional storage: £${inputs.additional_storage.toLocaleString()} × 12 = £${(inputs.additional_storage * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">  • Security: £${inputs.security_services.toLocaleString()} × 12 = £${(inputs.security_services * 12).toLocaleString()}</div>
+                            <div class="calculation-detail">Total additional services: £${additionalServicesAnnual.toLocaleString()}</div>
+                            ${year.modernisationSavings !== 0 ? `<div class="calculation-detail">Modernisation impact: £${year.modernisationSavings.toLocaleString()}</div>` : ''}
+                            <div class="calculation-detail formula">Total Azure = £${avsNodeCostAnnual.toLocaleString()} + £${additionalServicesAnnual.toLocaleString()} ${year.modernisationSavings !== 0 ? `+ £${year.modernisationSavings.toLocaleString()}` : ''} = £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
                         </div>
                     </div>
                     
-                    ${migrationCompletionDate < yearEndDate && migrationCompletionDate > yearStartDate ? 
-                        `<div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 5px;">
-                            <strong>🔄 Migration Impact:</strong> Migration completes ${migrationCompletionDate.toDateString()}, 
-                            so VMware license is prorated for ${Math.round((migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44))} months.
-                        </div>` : ''}
+                    <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border: 2px solid #0078d4; border-radius: 5px;">
+                        <strong>📈 Year ${year.year} Final Calculation:</strong>
+                        <div class="calculation-detail">On-Premises total cost: £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div class="calculation-detail">Azure total cost: £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div class="calculation-detail formula">Annual Savings = £${year.onPremCost.toLocaleString(undefined, {maximumFractionDigits: 0})} - £${year.azureCost.toLocaleString(undefined, {maximumFractionDigits: 0})} = £${year.savings.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                        <div class="calculation-detail result">Cumulative Savings through Year ${year.year} = £${year.cumulative.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                    </div>
                 </div>
             `;
         }
 
-        function calculateAVSNodeCost(inputs) {
+        function calculateAVSNodeMonthlyCost(inputs) {
             const nodeCosts = {
                 'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
                 'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
@@ -2141,14 +2315,18 @@
                 'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
             };
             
-            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes;
+            let monthlyAvsNodeCostPerNode = nodeCosts[inputs.avs_node_type][inputs.reserved_term];
             
             // Apply Azure Hybrid Benefit (approximately 40% savings on compute)
             if (inputs.hybrid_benefit === 'yes') {
-                monthlyAvsNodeCost *= 0.6;
+                monthlyAvsNodeCostPerNode *= 0.6;
             }
             
-            return monthlyAvsNodeCost * 12;
+            return monthlyAvsNodeCostPerNode * inputs.avs_nodes;
+        }
+
+        function calculateAVSNodeCost(inputs) {
+            return calculateAVSNodeMonthlyCost(inputs) * 12;
         }
 
         function toggleYearDetails(index) {
@@ -2220,6 +2398,8 @@
                 toggleCostMethod();
                 // Update refresh schedule
                 updateRefreshSchedule();
+                // Update migration schedule
+                updateMigrationSchedule();
                 
                 // Show brief indication that data was restored
                 setTimeout(() => {
