@@ -372,15 +372,20 @@
                     <h3>Fixed Annual Cost</h3>
                     <div class="input-group">
                         <div class="input-field">
-                            <label>Total Annual On-Premises Cost (£)
+                            <label>Total Annual Operational Cost (£)
                                 <span class="info-icon">i
-                                    <span class="tooltip">ONGOING annual operational costs only: VMware licensing, support contracts, facilities, power, staff, connectivity. DO NOT include depreciation of already-purchased hardware - focus on costs that actually stop when you migrate.</span>
+                                    <span class="tooltip">ONGOING annual operational costs only: support contracts, facilities, power, staff, connectivity. DO NOT include VMware licensing (handled separately) or depreciation of already-purchased hardware.</span>
                                 </span>
                             </label>
-                            <input type="number" id="fixed_annual_cost" value="380000" step="5000">
+                            <input type="number" id="fixed_annual_cost" value="316000" step="5000">
                         </div>
                         <div class="input-field">
-                            <!-- Empty for grid alignment -->
+                            <label>Hardware Support Costs (£)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Annual hardware support contracts, maintenance agreements, and lease payments that will stop when migrating to cloud. Used for hardware refresh calculations.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="fixed_hardware_support" value="50000" step="1000">
                         </div>
                     </div>
                 </div>
@@ -1000,10 +1005,10 @@
                     
                     <div class="formula-box">
                         <h4>Method 1: Fixed Annual Cost</h4>
-                        <p>Uses a single total annual operational cost figure for your current environment.</p>
-                        <p><strong>Focus on ONGOING costs only</strong> - VMware licensing, support contracts, facilities, power, staff. Excludes sunk costs like hardware depreciation.</p>
-                        <p><strong>On-Premises Annual Cost = Fixed Annual Cost</strong></p>
-                        <p><strong>Hardware Portion = 25% of Fixed Cost</strong> (used for refresh calculations)</p>
+                        <p>Uses separate inputs for operational costs and hardware support costs.</p>
+                        <p><strong>Focus on ONGOING costs only</strong> - support contracts, facilities, power, staff. Excludes sunk costs like hardware depreciation and VMware licensing (handled separately).</p>
+                        <p><strong>On-Premises Annual Cost = Fixed Annual Cost + VMware License Cost</strong></p>
+                        <p><strong>Hardware Support Costs = Manual Input</strong> (used for refresh calculations)</p>
                     </div>
 
                     <div class="formula-box">
@@ -1148,7 +1153,7 @@
                         <h4>Key Assumptions</h4>
                         <ul>
                             <li><strong>Focus on Operational Costs:</strong> Excludes sunk costs like hardware depreciation, focuses on ongoing costs that actually stop when migrating</li>
-                            <li><strong>Fixed Cost Method:</strong> Hardware support represents 25% of total operational costs</li>
+                            <li><strong>Fixed Cost Method:</strong> Hardware support costs are entered manually as a separate input</li>
                             <li><strong>Staff Reduction:</strong> 30% reduction in staff costs with Azure (breakdown method)</li>
                             <li><strong>Growth Rates:</strong> Applied equally to on-premises and Azure costs</li>
                             <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
@@ -1403,6 +1408,7 @@
                 // Cost method and fixed cost
                 cost_method: costMethod,
                 fixed_annual_cost: parseFloat(document.getElementById('fixed_annual_cost').value) || 0,
+                fixed_hardware_support: parseFloat(document.getElementById('fixed_hardware_support').value) || 0,
                 
                 // Current environment costs (breakdown method)
                 hardware_cost: parseFloat(document.getElementById('hardware_cost').value) || 0,
@@ -1477,8 +1483,7 @@
             
             if (inputs.cost_method === 'fixed') {
                 baseAnnualOnPremCosts = inputs.fixed_annual_cost;
-                // Estimate hardware support portion as 25% of total for refresh calculations
-                hardwareRelatedCosts = baseAnnualOnPremCosts * 0.25;
+                hardwareRelatedCosts = inputs.fixed_hardware_support;
             } else {
                 baseAnnualOnPremCosts = inputs.hardware_cost + inputs.vmware_licensing + 
                     inputs.storage_hardware + inputs.network_equipment + inputs.backup_hardware + 
@@ -1598,10 +1603,8 @@
                 // Calculate on-premises costs with license renewal timing
                 let yearlyOnPremCost;
                 if (inputs.cost_method === 'fixed') {
-                    // For fixed method, subtract current VMware portion and add calculated VMware cost
-                    const vmwarePortion = baseAnnualOnPremCosts * 0.2; // Estimate 20% is VMware licensing
-                    const nonVMwareCosts = baseAnnualOnPremCosts - vmwarePortion;
-                    yearlyOnPremCost = nonVMwareCosts * Math.pow(1 + growthRate, year - 1) + vmwareLicenseCost;
+                    // For fixed method, VMware licensing is handled separately
+                    yearlyOnPremCost = baseAnnualOnPremCosts * Math.pow(1 + growthRate, year - 1) + vmwareLicenseCost;
                 } else {
                     // For breakdown method, exclude vmware_licensing and add calculated cost
                     const infrastructureCosts = inputs.hardware_cost + inputs.storage_hardware + inputs.network_equipment + 
@@ -1816,8 +1819,8 @@
             if (inputs.cost_method === 'fixed') {
                 detailsHtml += `
                     <div class="calculation-step">Fixed Annual Operational Cost = £${inputs.fixed_annual_cost.toLocaleString()}</div>
-                    <div class="calculation-step">Estimated VMware Portion (20%) = £${(inputs.fixed_annual_cost * 0.2).toLocaleString()}</div>
-                    <div class="calculation-step">Estimated Hardware Support Portion (25%) = £${(inputs.fixed_annual_cost * 0.25).toLocaleString()}</div>
+                    <div class="calculation-step">Hardware Support Costs = £${inputs.fixed_hardware_support.toLocaleString()}</div>
+                    <div class="calculation-step">Note: VMware licensing costs are calculated separately based on renewal timing</div>
                 `;
             } else {
                 detailsHtml += `
@@ -1828,7 +1831,7 @@
             }
             
             detailsHtml += `
-                    <div class="calculation-result">Total Base Annual On-Premises Cost = £${baseAnnualOnPremCosts.toLocaleString()}</div>
+                    <div class="calculation-result">Total Base Annual On-Premises Cost = £${baseAnnualOnPremCosts.toLocaleString()} (excluding VMware licensing)</div>
                 </div>
             `;
 
