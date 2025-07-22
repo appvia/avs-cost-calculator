@@ -1089,8 +1089,19 @@
                     <div class="formula-box">
                         <h4>Calendar Year Analysis Approach</h4>
                         <p><strong>Year Definition:</strong> Each analysis year runs from January 1st to December 31st</p>
-                        <p><strong>Year 1:</strong> Current calendar year (e.g., 2024)</p>
-                        <p><strong>Year 2:</strong> Next calendar year (e.g., 2025)</p>
+                        <p><strong>Analysis Year Numbering:</strong></p>
+                        <ul>
+                            <li><strong>Year 1:</strong> Current calendar year (January - December)</li>
+                            <li><strong>Year 2:</strong> Next calendar year (January - December)</li>
+                            <li><strong>Year 3:</strong> Second year from now (January - December)</li>
+                            <li>And so on...</li>
+                        </ul>
+                        <p><strong>Example (if running calculator in 2024):</strong></p>
+                        <ul>
+                            <li>Year 1 = 2024 (January 1, 2024 - December 31, 2024)</li>
+                            <li>Year 2 = 2025 (January 1, 2025 - December 31, 2025)</li>
+                            <li>Year 3 = 2026 (January 1, 2026 - December 31, 2026)</li>
+                        </ul>
                         <p><strong>VMware License Logic (Including Commitment Periods):</strong></p>
                         <ul>
                             <li><strong>Key Rule:</strong> You pay VMware costs until BOTH conditions are met: Migration complete AND License commitment ends</li>
@@ -1339,7 +1350,10 @@
                     <div class="breakdown">
                         <h3>Annual Cost Comparison</h3>
                         <p style="color: #666; font-style: italic; margin-bottom: 15px;">
-                            📊 The table below shows year-by-year cost comparison. The row highlighted in <span style="background-color: #d4edda; padding: 2px 4px; border-radius: 3px; color: #28a745; font-weight: bold;">green</span> indicates when your migration investment is fully recovered through cumulative savings.
+                            📊 The table below shows year-by-year cost comparison using <strong>calendar years</strong> (January to December). The row highlighted in <span style="background-color: #d4edda; padding: 2px 4px; border-radius: 3px; color: #28a745; font-weight: bold;">green</span> indicates when your migration investment is fully recovered through cumulative savings.
+                        </p>
+                        <p style="color: #666; font-style: italic; margin-bottom: 15px;">
+                            📅 <strong>Year Explanation:</strong> Year 1 = Current calendar year, Year 2 = Next calendar year, etc. Each year runs from January 1st to December 31st for logical business planning.
                         </p>
                         <p style="color: #666; font-style: italic; margin-bottom: 15px;">
                             💡 <strong>VMware License Saved</strong> shows the amount you avoid paying by migrating to Azure instead of staying on-premises and paying VMware license costs.
@@ -1922,8 +1936,10 @@
                 
                 // Year column with expand button
                 const yearCell = row.insertCell(0);
+                const calendarYear = currentDate.getFullYear() + year.year - 1;
+                const yearLabel = `Year ${year.year}<br/><small style="color: #666;">(${calendarYear})</small>`;
                 yearCell.innerHTML = `
-                    Year ${year.year}
+                    ${yearLabel}
                     <button class="expand-button" onclick="toggleYearDetails(${index})" id="expand-btn-${index}">
                         📊 Details
                     </button>
@@ -2325,7 +2341,8 @@
                         <div class="calculation-detail">Migration start date: ${migrationStartDate.toDateString()}</div>
                         <div class="calculation-detail">Migration duration: ${inputs.migration_timeline} months</div>
                         <div class="calculation-detail">Migration completion: ${migrationCompletionDate.toDateString()}</div>
-                        <div class="calculation-detail">Analysis Year ${year.year}: ${yearStartDate.toDateString()} to ${new Date(yearEndDate.getTime() - 24*60*60*1000).toDateString()}</div>
+                        <div class="calculation-detail"><strong>Analysis Year ${year.year} (${currentDate.getFullYear() + year.year - 1}):</strong> ${yearStartDate.toDateString()} to ${new Date(yearEndDate.getTime() - 24*60*60*1000).toDateString()}</div>
+                        <div class="calculation-detail">Period: ${yearStartDate.toLocaleDateString('en-US', {month: 'long'})} ${yearStartDate.getFullYear()} - ${new Date(yearEndDate.getTime() - 24*60*60*1000).toLocaleDateString('en-US', {month: 'long'})} ${new Date(yearEndDate.getTime() - 24*60*60*1000).getFullYear()}</div>
                         <div class="calculation-detail">Total days in analysis year: ${totalDaysInYear.toFixed(0)} days</div>
                         ${canStopPayingDate <= yearStartDate ? 
                             '<div class="calculation-detail" style="color: #28a745; font-weight: bold;">✅ Both migration complete AND license commitment ended - NO VMware costs!</div>' : 
