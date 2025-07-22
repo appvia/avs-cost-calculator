@@ -563,9 +563,9 @@
                             <input type="number" id="new_vmware_cost" value="150000" step="5000">
                         </div>
                         <div class="input-field">
-                            <label>Committed License Period (Years)
+                            <label>License Commitment Period (Years)
                                 <span class="info-icon">i
-                                    <span class="tooltip">If you don't migrate by renewal date, how many years would you commit to? (1-3 years typical). Longer commitments may get better pricing.</span>
+                                    <span class="tooltip">How many years will you be locked into paying if you renew? This is critical - you must pay for the full commitment period even if you migrate partway through. 1-3 years typical.</span>
                                 </span>
                             </label>
                             <input type="number" id="license_commitment_years" value="1" step="1" min="1" max="5">
@@ -1087,10 +1087,25 @@
                     <h3>Growth and Timing Calculations</h3>
                     
                     <div class="formula-box">
-                        <h4>Simplified Cost Calculations</h4>
-                        <p><strong>Hardware Costs: Remain constant each year</strong></p>
-                        <p><strong>VMware License Renewal: License cost depends on renewal date, migration timing, and commitment period</strong></p>
-                        <p>For simplified comparison, all costs remain constant each year. VMware license costs are calculated based on renewal timing relative to migration completion, avoiding step-change price increases through migration.</p>
+                        <h4>Calendar Year Analysis Approach</h4>
+                        <p><strong>Year Definition:</strong> Each analysis year runs from January 1st to December 31st</p>
+                        <p><strong>Year 1:</strong> Current calendar year (e.g., 2024)</p>
+                        <p><strong>Year 2:</strong> Next calendar year (e.g., 2025)</p>
+                        <p><strong>VMware License Logic (Including Commitment Periods):</strong></p>
+                        <ul>
+                            <li><strong>Key Rule:</strong> You pay VMware costs until BOTH conditions are met: Migration complete AND License commitment ends</li>
+                            <li><strong>Before license renewal:</strong> Current license costs apply</li>
+                            <li><strong>After license renewal:</strong> New (often higher) license costs apply for the full commitment period</li>
+                            <li><strong>Migration complete but commitment active:</strong> Still pay full VMware costs</li>
+                            <li><strong>Both conditions met:</strong> Zero VMware license costs</li>
+                        </ul>
+                        <p><strong>Real Example:</strong></p>
+                        <ul>
+                            <li>License renewal: Dec 31, 2024 (1-year commitment → ends Dec 31, 2025)</li>
+                            <li>Migration completes: Jun 1, 2025</li>
+                            <li>Result: Pay VMware costs until Dec 31, 2025 (despite being migrated)</li>
+                            <li>Savings start: Jan 1, 2026</li>
+                        </ul>
                     </div>
 
                     <div class="formula-box">
@@ -1218,11 +1233,13 @@
                     <div class="formula-box">
                         <h4>Key Assumptions</h4>
                         <ul>
+                            <li><strong>Calendar Year Analysis:</strong> Each year runs January 1st to December 31st for logical business planning</li>
+                            <li><strong>Migration Timing:</strong> VMware license costs stop completely when migration completes</li>
+                            <li><strong>Post-Migration:</strong> Zero VMware license costs after migration completion date</li>
                             <li><strong>Simplified Approach:</strong> Single annual hardware cost input with constant costs</li>
                             <li><strong>Fixed Cost Method:</strong> One input covers all hardware operational costs</li>
                             <li><strong>Staff Reduction:</strong> 30% reduction in staff costs with Azure (breakdown method)</li>
                             <li><strong>Constant Costs:</strong> All costs remain the same each year for clear comparison</li>
-                            <li><strong>Migration Timing:</strong> Cost savings begin when migration completes based on start date and duration</li>
                             <li><strong>Hardware Refresh:</strong> Occurs when equipment reaches refresh cycle age</li>
                             <li><strong>Modernisation:</strong> Savings begin after modernisation timeline</li>
                             <li><strong>Simple Calculations:</strong> No discounting or time value of money adjustments</li>
@@ -1493,15 +1510,23 @@
              scheduleText += `Duration: ${migrationDuration} months. `;
              scheduleText += `Completion: ${migrationCompletionDate.toDateString()}.`;
              
-             // Add license renewal interaction
+             // Add license renewal interaction including commitment period
              const licenseRenewalInput = document.getElementById('license_renewal_date');
-             if (licenseRenewalInput.value) {
+             const licenseCommitmentInput = document.getElementById('license_commitment_years');
+             if (licenseRenewalInput.value && licenseCommitmentInput.value) {
                  const licenseRenewalDate = new Date(licenseRenewalInput.value);
+                 const commitmentYears = parseInt(licenseCommitmentInput.value);
+                 const licenseCommitmentEndDate = new Date(licenseRenewalDate);
+                 licenseCommitmentEndDate.setFullYear(licenseCommitmentEndDate.getFullYear() + commitmentYears);
                  
                  if (migrationCompletionDate <= licenseRenewalDate) {
-                     scheduleText += ` ✅ Migration completes BEFORE license renewal - avoiding price increases!`;
+                     scheduleText += ` ✅ Migration completes BEFORE license renewal - avoiding price increases completely!`;
+                 } else if (migrationCompletionDate <= licenseCommitmentEndDate) {
+                     const monthsOfPayment = Math.ceil((licenseCommitmentEndDate - migrationCompletionDate) / (1000 * 60 * 60 * 24 * 30.44));
+                     scheduleText += ` ⚠️ CRITICAL: Migration completes ${migrationCompletionDate.toDateString()} but license commitment extends to ${licenseCommitmentEndDate.toDateString()}.`;
+                     scheduleText += ` You'll pay for ~${monthsOfPayment} extra months after migration!`;
                  } else {
-                     scheduleText += ` ⚠️ Migration completes AFTER license renewal - some increased costs unavoidable.`;
+                     scheduleText += ` ✅ Migration completes after license commitment ends - optimal timing.`;
                  }
              }
              
@@ -1619,11 +1644,18 @@
             const yearsOld = (currentDate - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25);
             
             function calculateRefreshCosts(year) {
-                const ageAtYear = yearsOld + year;
-                const refreshYear = Math.ceil(ageAtYear / inputs.refresh_cycle_years) * inputs.refresh_cycle_years;
+                // Calculate what calendar year we're analyzing
+                const analysisYear = currentDate.getFullYear() + year - 1;
                 
-                // Check if refresh occurs in this year
-                if (Math.abs(refreshYear - ageAtYear) < 0.5) {
+                // Calculate how old the hardware will be in the analysis year
+                const hardwareAgeInAnalysisYear = analysisYear - purchaseDate.getFullYear();
+                
+                // Check if refresh is due in this specific year
+                const refreshYear = Math.ceil(yearsOld / inputs.refresh_cycle_years) * inputs.refresh_cycle_years;
+                const refreshCalendarYear = purchaseDate.getFullYear() + refreshYear;
+                
+                // If refresh happens in this analysis year
+                if (refreshCalendarYear === analysisYear) {
                     const refreshCost = hardwareRelatedCosts * inputs.refresh_cost_multiplier * (inputs.refresh_percentage / 100);
                     return refreshCost;
                 }
@@ -1686,20 +1718,27 @@
                     migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
                 }
                 
-                const yearStartDate = new Date(currentDate);
-                yearStartDate.setFullYear(yearStartDate.getFullYear() + year - 1);
-                const yearEndDate = new Date(yearStartDate);
-                yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
+                // Use calendar years starting from current year for logical business analysis
+                const yearStartDate = new Date(currentDate.getFullYear() + year - 1, 0, 1); // January 1st of the analysis year
+                const yearEndDate = new Date(currentDate.getFullYear() + year, 0, 1); // January 1st of next year
                 
-                // If migration completes before this year starts, no VMware license cost
-                if (migrationCompletionDate <= yearStartDate) {
+                // Calculate license commitment end date (when you can actually stop paying)
+                const licenseCommitmentEndDate = new Date(renewalDate);
+                licenseCommitmentEndDate.setFullYear(licenseCommitmentEndDate.getFullYear() + inputs.license_commitment_years);
+                
+                // Key logic: You must pay VMware costs until BOTH conditions are met:
+                // 1. Migration is complete AND 2. License commitment period has ended
+                const canStopPayingDate = new Date(Math.max(migrationCompletionDate.getTime(), licenseCommitmentEndDate.getTime()));
+                
+                // If you can stop paying before this year starts, no VMware license cost
+                if (canStopPayingDate <= yearStartDate) {
                     return 0;
                 }
                 
-                // If migration completes during this year, prorate the cost
-                let licenseMonths = 12;
-                if (migrationCompletionDate > yearStartDate && migrationCompletionDate < yearEndDate) {
-                    licenseMonths = (migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44); // Average month length
+                // Calculate how many days in this year you must pay license costs
+                let licenseDaysInYear = (yearEndDate - yearStartDate) / (1000 * 60 * 60 * 24);
+                if (canStopPayingDate > yearStartDate && canStopPayingDate < yearEndDate) {
+                    licenseDaysInYear = (canStopPayingDate - yearStartDate) / (1000 * 60 * 60 * 24);
                 }
                 
                 // Determine which license cost applies
@@ -1713,13 +1752,15 @@
                         annualLicenseCost = inputs.new_vmware_cost;
                     } else if (renewalDate > yearStartDate && renewalDate <= yearEndDate) {
                         // Renewal happens during this year - calculate weighted average
-                        const monthsOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
-                        const monthsNewPrice = 12 - monthsOldPrice;
-                        annualLicenseCost = (inputs.current_vmware_cost * monthsOldPrice + inputs.new_vmware_cost * monthsNewPrice) / 12;
+                        const daysOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24);
+                        const daysNewPrice = licenseDaysInYear - daysOldPrice;
+                        if (daysNewPrice > 0) {
+                            annualLicenseCost = (inputs.current_vmware_cost * daysOldPrice + inputs.new_vmware_cost * daysNewPrice) / licenseDaysInYear;
+                        }
                     }
                 }
                 
-                return (annualLicenseCost * licenseMonths / 12);
+                return (annualLicenseCost * licenseDaysInYear / 365);
             }
 
             // Helper function to calculate what VMware license cost WOULD BE if no migration occurred
@@ -1727,10 +1768,9 @@
                 const currentDate = new Date();
                 const renewalDate = new Date(inputs.license_renewal_date);
                 
-                const yearStartDate = new Date(currentDate);
-                yearStartDate.setFullYear(yearStartDate.getFullYear() + year - 1);
-                const yearEndDate = new Date(yearStartDate);
-                yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
+                // Use calendar years starting from current year for logical business analysis
+                const yearStartDate = new Date(currentDate.getFullYear() + year - 1, 0, 1); // January 1st of the analysis year
+                const yearEndDate = new Date(currentDate.getFullYear() + year, 0, 1); // January 1st of next year
                 
                 // Determine which license cost applies (without considering migration)
                 let annualLicenseCost = inputs.current_vmware_cost;
@@ -2163,10 +2203,16 @@
                 migrationCompletionDate.setMonth(migrationCompletionDate.getMonth() + inputs.migration_timeline);
             }
             
-            const yearStartDate = new Date(currentDate);
-            yearStartDate.setFullYear(yearStartDate.getFullYear() + year.year - 1);
-            const yearEndDate = new Date(yearStartDate);
-            yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
+            // Calculate license commitment end date
+            const licenseCommitmentEndDate = new Date(renewalDate);
+            licenseCommitmentEndDate.setFullYear(licenseCommitmentEndDate.getFullYear() + inputs.license_commitment_years);
+            
+            // When can you actually stop paying VMware?
+            const canStopPayingDate = new Date(Math.max(migrationCompletionDate.getTime(), licenseCommitmentEndDate.getTime()));
+            
+            // Use calendar years starting from current year for logical business analysis
+            const yearStartDate = new Date(currentDate.getFullYear() + year.year - 1, 0, 1); // January 1st of the analysis year
+            const yearEndDate = new Date(currentDate.getFullYear() + year.year, 0, 1); // January 1st of next year
             
             // Calculate total days in this year
             const totalDaysInYear = (yearEndDate - yearStartDate) / (1000 * 60 * 60 * 24);
@@ -2190,29 +2236,62 @@
                 licenseRenewalCalculation = `Renewal date (${renewalDate.toDateString()}) is after year end, using current license cost: £${inputs.current_vmware_cost.toLocaleString()}`;
             }
             
-            // Calculate actual license cost (considering migration)
+            // Calculate actual license cost (considering migration AND commitment period)
             let actualLicenseCost = 0;
             let actualLicenseCalculation = '';
             let licenseDaysUsed = 0;
             
-            if (migrationCompletionDate <= yearStartDate) {
-                actualLicenseCalculation = `Migration completed before year start (${migrationCompletionDate.toDateString()}), no VMware license cost for this year.`;
-            } else if (migrationCompletionDate >= yearEndDate) {
+            if (canStopPayingDate <= yearStartDate) {
+                actualLicenseCalculation = `✅ No VMware license costs this year!
+                • Migration completed: ${migrationCompletionDate.toDateString()}
+                • License commitment ends: ${licenseCommitmentEndDate.toDateString()}
+                • Can stop paying from: ${canStopPayingDate.toDateString()}
+                • Year starts: ${yearStartDate.toDateString()}
+                
+                Since both migration is complete AND license commitment has ended before this year, you pay £0.`;
+            } else if (canStopPayingDate >= yearEndDate) {
                 licenseDaysUsed = totalDaysInYear;
                 actualLicenseCost = wouldHaveBeenLicenseCost;
-                actualLicenseCalculation = `Migration completes after year end (${migrationCompletionDate.toDateString()}), full year license cost applies:
+                
+                let reasonForFullPayment = '';
+                if (migrationCompletionDate >= yearEndDate && licenseCommitmentEndDate >= yearEndDate) {
+                    reasonForFullPayment = 'Both migration and license commitment extend beyond this year';
+                } else if (migrationCompletionDate >= yearEndDate) {
+                    reasonForFullPayment = 'Migration not yet complete';
+                } else {
+                    reasonForFullPayment = `License commitment extends to ${licenseCommitmentEndDate.toDateString()} (migration completed ${migrationCompletionDate.toDateString()})`;
+                }
+                
+                actualLicenseCalculation = `❌ Full year license cost applies (${reasonForFullPayment}):
+                • Migration completion: ${migrationCompletionDate.toDateString()}
+                • License commitment ends: ${licenseCommitmentEndDate.toDateString()}
+                • Can stop paying from: ${canStopPayingDate.toDateString()}
                 • License cost per day: £${wouldHaveBeenLicenseCost.toLocaleString()} ÷ 365 = £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                • Days used: ${licenseDaysUsed.toFixed(0)} days
+                • Days used: ${licenseDaysUsed.toFixed(0)} days (full year)
                 • Total cost: £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × ${licenseDaysUsed.toFixed(0)} = £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
             } else {
-                licenseDaysUsed = (migrationCompletionDate - yearStartDate) / (1000 * 60 * 60 * 24);
+                licenseDaysUsed = (canStopPayingDate - yearStartDate) / (1000 * 60 * 60 * 24);
                 actualLicenseCost = (wouldHaveBeenLicenseCost * licenseDaysUsed) / totalDaysInYear;
-                actualLicenseCalculation = `Migration completes during year (${migrationCompletionDate.toDateString()}):
+                
+                let paymentReason = '';
+                if (migrationCompletionDate < canStopPayingDate) {
+                    paymentReason = `⚠️ Migration completes ${migrationCompletionDate.toDateString()} but you're locked into license commitment until ${licenseCommitmentEndDate.toDateString()}`;
+                } else {
+                    paymentReason = `⚠️ License commitment ends ${licenseCommitmentEndDate.toDateString()} but migration doesn't complete until ${migrationCompletionDate.toDateString()}`;
+                }
+                
+                actualLicenseCalculation = `⚠️ Partial year license cost (${paymentReason}):
+                
+                📋 Key Dates:
                 • Migration start: ${migrationStartDate.toDateString()}
-                • Migration duration: ${inputs.migration_timeline} months
                 • Migration completion: ${migrationCompletionDate.toDateString()}
-                • Year starts: ${yearStartDate.toDateString()}
-                • Days with VMware license: ${licenseDaysUsed.toFixed(0)} days (from year start to migration completion)
+                • License renewal: ${renewalDate.toDateString()} (${inputs.license_commitment_years}-year commitment)
+                • License commitment ends: ${licenseCommitmentEndDate.toDateString()}
+                • Can stop paying from: ${canStopPayingDate.toDateString()}
+                
+                💰 Cost Calculation:
+                • Year period: ${yearStartDate.toDateString()} to ${new Date(yearEndDate.getTime() - 24*60*60*1000).toDateString()}
+                • Days with VMware license: ${licenseDaysUsed.toFixed(0)} days (until you can stop paying)
                 • License cost per day: £${wouldHaveBeenLicenseCost.toLocaleString()} ÷ 365 = £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})}
                 • Prorated cost: £${(wouldHaveBeenLicenseCost / 365).toLocaleString(undefined, {maximumFractionDigits: 2})} × ${licenseDaysUsed.toFixed(0)} = £${actualLicenseCost.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
             }
@@ -2246,8 +2325,16 @@
                         <div class="calculation-detail">Migration start date: ${migrationStartDate.toDateString()}</div>
                         <div class="calculation-detail">Migration duration: ${inputs.migration_timeline} months</div>
                         <div class="calculation-detail">Migration completion: ${migrationCompletionDate.toDateString()}</div>
-                        <div class="calculation-detail">Year ${year.year} period: ${yearStartDate.toDateString()} to ${yearEndDate.toDateString()}</div>
-                        <div class="calculation-detail">Total days in year: ${totalDaysInYear.toFixed(0)} days</div>
+                        <div class="calculation-detail">Analysis Year ${year.year}: ${yearStartDate.toDateString()} to ${new Date(yearEndDate.getTime() - 24*60*60*1000).toDateString()}</div>
+                        <div class="calculation-detail">Total days in analysis year: ${totalDaysInYear.toFixed(0)} days</div>
+                        ${canStopPayingDate <= yearStartDate ? 
+                            '<div class="calculation-detail" style="color: #28a745; font-weight: bold;">✅ Both migration complete AND license commitment ended - NO VMware costs!</div>' : 
+                            canStopPayingDate < yearEndDate ? 
+                                '<div class="calculation-detail" style="color: #ff8c00; font-weight: bold;">⚠️ Can stop paying VMware during this year - Prorated costs</div>' :
+                                migrationCompletionDate < yearEndDate && licenseCommitmentEndDate > yearEndDate ?
+                                '<div class="calculation-detail" style="color: #dc3545; font-weight: bold;">❌ Migration completes but still locked into license commitment - Full costs</div>' :
+                                '<div class="calculation-detail" style="color: #dc3545; font-weight: bold;">❌ Migration not complete OR license commitment active - Full VMware costs</div>'
+                        }
                     </div>
                     
                     <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
