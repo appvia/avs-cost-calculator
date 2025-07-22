@@ -1267,13 +1267,16 @@
                         <p style="color: #666; font-style: italic; margin-bottom: 15px;">
                             📊 The table below shows year-by-year cost comparison. The row highlighted in <span style="background-color: #d4edda; padding: 2px 4px; border-radius: 3px; color: #28a745; font-weight: bold;">green</span> indicates when your migration investment is fully recovered through cumulative savings.
                         </p>
+                        <p style="color: #666; font-style: italic; margin-bottom: 15px;">
+                            💡 <strong>VMware License Saved</strong> shows the amount you avoid paying by migrating to Azure instead of staying on-premises and paying VMware license costs.
+                        </p>
                         <table class="breakdown-table">
                             <thead>
                                 <tr>
                                     <th>Year</th>
                                     <th>On-Premises Cost</th>
                                     <th>Hardware Refresh</th>
-                                    <th>License Cost Avoidance</th>
+                                    <th>VMware License Saved</th>
                                     <th>Azure Cost</th>
                                     <th>Modernisation Savings</th>
                                     <th>Annual Savings</th>
@@ -1593,6 +1596,36 @@
                 return (annualLicenseCost * licenseMonths / 12) * Math.pow(1 + growthRate, year - 1);
             }
 
+            // Helper function to calculate what VMware license cost WOULD BE if no migration occurred
+            function calculateVMwareLicenseCostWithoutMigration(year) {
+                const currentDate = new Date();
+                const renewalDate = new Date(inputs.license_renewal_date);
+                
+                const yearStartDate = new Date(currentDate);
+                yearStartDate.setFullYear(yearStartDate.getFullYear() + year - 1);
+                const yearEndDate = new Date(yearStartDate);
+                yearEndDate.setFullYear(yearEndDate.getFullYear() + 1);
+                
+                // Determine which license cost applies (without considering migration)
+                let annualLicenseCost = inputs.current_vmware_cost;
+                
+                // If renewal date falls before or during this year, use new cost
+                if (renewalDate <= yearEndDate) {
+                    // Check if we're in renewal period
+                    if (renewalDate <= yearStartDate) {
+                        // Renewal already happened, use new cost
+                        annualLicenseCost = inputs.new_vmware_cost;
+                    } else if (renewalDate > yearStartDate && renewalDate <= yearEndDate) {
+                        // Renewal happens during this year - calculate weighted average
+                        const monthsOldPrice = (renewalDate - yearStartDate) / (1000 * 60 * 60 * 24 * 30.44);
+                        const monthsNewPrice = 12 - monthsOldPrice;
+                        annualLicenseCost = (inputs.current_vmware_cost * monthsOldPrice + inputs.new_vmware_cost * monthsNewPrice) / 12;
+                    }
+                }
+                
+                return annualLicenseCost * Math.pow(1 + growthRate, year - 1);
+            }
+
             const yearlyBreakdown = [];
             let cumulativeSavings = 0;
 
@@ -1643,16 +1676,10 @@
                 cumulativeSavings += yearlySavings;
 
                 // Calculate license cost avoidance for display
-                let licenseCostAvoidance = 0;
-                const currentDate = new Date();
-                const renewalDate = new Date(inputs.license_renewal_date);
-                const yearStartDate = new Date(currentDate);
-                yearStartDate.setFullYear(yearStartDate.getFullYear() + year - 1);
-                
-                // If renewal date has passed and we have a cost increase, show avoidance
-                if (renewalDate <= yearStartDate && inputs.new_vmware_cost > inputs.current_vmware_cost) {
-                    licenseCostAvoidance = (inputs.new_vmware_cost - inputs.current_vmware_cost) * Math.pow(1 + growthRate, year - 1);
-                }
+                // This shows what you WOULD have paid if you hadn't migrated
+                const actualLicenseCost = calculateVMwareLicenseCost(year);
+                const wouldHavePaidLicenseCost = calculateVMwareLicenseCostWithoutMigration(year);
+                const licenseCostAvoidance = wouldHavePaidLicenseCost - actualLicenseCost;
 
                 yearlyBreakdown.push({
                     year: year,
@@ -1739,7 +1766,7 @@
                 
                 const licenseCostAvoidanceCell = row.insertCell(3);
                 licenseCostAvoidanceCell.textContent = '£' + year.licenseCostAvoidance.toLocaleString(undefined, {maximumFractionDigits: 0});
-                if (year.licenseCostAvoidance > 1000) { // Only highlight significant amounts
+                if (year.licenseCostAvoidance > 0) { // Highlight any license savings
                     licenseCostAvoidanceCell.style.backgroundColor = '#d4edda';
                     licenseCostAvoidanceCell.style.color = '#155724';
                     licenseCostAvoidanceCell.style.fontWeight = 'bold';
@@ -1886,8 +1913,43 @@
                     <div class="calculation-step">VMware License Renewal Date = ${inputs.license_renewal_date}</div>
                     <div class="calculation-step">Current License Cost = £${inputs.current_vmware_cost.toLocaleString()}/year</div>
                     <div class="calculation-step">Expected New License Cost = £${inputs.new_vmware_cost.toLocaleString()}/year</div>
+                    <div class="calculation-step">Migration Timeline = ${inputs.migration_timeline} months</div>
                     <div class="calculation-formula">On-Premises Cost considers license renewal timing and migration completion date</div>
                     <div class="calculation-formula">Azure Year t = Base Cost × (1 + ${inputs.growth_rate/100})^(t-1)</div>
+                </div>
+            `;
+
+            // VMware License Calculation Details
+            // Reuse existing date calculations
+            const vmwareRenewalDate = new Date(inputs.license_renewal_date);
+            const vmwareMigrationCompletionDate = new Date();
+            vmwareMigrationCompletionDate.setMonth(vmwareMigrationCompletionDate.getMonth() + inputs.migration_timeline);
+            
+            detailsHtml += `
+                <div class="calculation-section">
+                    <h4>4A. VMware License Cost Calculation Details</h4>
+                    <div class="calculation-step">Current Date = ${new Date().toDateString()}</div>
+                    <div class="calculation-step">License Renewal Date = ${vmwareRenewalDate.toDateString()}</div>
+                    <div class="calculation-step">Migration Completion Date = ${vmwareMigrationCompletionDate.toDateString()}</div>
+                    
+                    <div class="calculation-formula"><strong>Two Scenarios Calculated:</strong></div>
+                    <div class="calculation-step">1. <strong>Actual License Cost:</strong> What you actually pay (considers migration timing)</div>
+                    <div class="calculation-step">   • If migration completes before year start: £0</div>
+                    <div class="calculation-step">   • If migration completes during year: Prorated cost</div>
+                    <div class="calculation-step">   • Considers renewal date vs migration date</div>
+                    
+                    <div class="calculation-step">2. <strong>Would-Have-Paid Cost:</strong> What you'd pay if no migration</div>
+                    <div class="calculation-step">   • Always calculates full year cost</div>
+                    <div class="calculation-step">   • Uses new license cost after renewal date</div>
+                    <div class="calculation-step">   • Applied with growth rate each year</div>
+                    
+                    <div class="calculation-formula"><strong>VMware License Saved = Would-Have-Paid - Actual Cost</strong></div>
+                    
+                    <div class="calculation-step"><strong>Key Logic:</strong></div>
+                    <div class="calculation-step">• Before renewal date: Use current license cost (£${inputs.current_vmware_cost.toLocaleString()})</div>
+                    <div class="calculation-step">• After renewal date: Use new license cost (£${inputs.new_vmware_cost.toLocaleString()})</div>
+                    <div class="calculation-step">• Migration timing determines how much you actually pay</div>
+                    <div class="calculation-step">• Growth rate applied to both scenarios</div>
                 </div>
             `;
 
