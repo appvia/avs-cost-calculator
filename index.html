@@ -992,17 +992,27 @@
                     <h3>Migration Timeline</h3>
                     <div class="input-group">
                         <div class="input-field">
-                            <label>Migration Timeline (Months)
+                            <label>Migration Start Date
                                 <span class="info-icon">i
-                                    <span class="tooltip">Time to complete initial migration to AVS. Modernisation timeline is configured in the Modernisation tab.</span>
+                                    <span class="tooltip">When will the migration project actually begin? This affects the timing of cost savings and VMware license renewal interactions.</span>
+                                </span>
+                            </label>
+                            <input type="date" id="migration_start_date" value="">
+                        </div>
+                        <div class="input-field">
+                            <label>Migration Duration (Months)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Time to complete initial migration to AVS from the start date. Modernisation timeline is configured in the Modernisation tab.</span>
                                 </span>
                             </label>
                             <input type="number" id="migration_timeline" value="6" step="1" min="1" max="24">
                         </div>
-                        <div class="input-field">
-                            <!-- Empty for grid alignment -->
-                        </div>
                     </div>
+                </div>
+
+                <div id="migration-timeline-summary" class="refresh-summary">
+                    <h4>📅 Migration Schedule</h4>
+                    <p id="migration-schedule-text">Configure migration start date and duration above to see the timeline.</p>
                 </div>
             </div>
         </div>
