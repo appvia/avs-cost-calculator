@@ -1930,7 +1930,7 @@
             document.querySelector('.tab:nth-child(6)').classList.add('active');
         }
 
-        // Session Storage Functions to save/restore form data
+        // Local Storage Functions to save/restore form data
         function saveFormData() {
             const formData = {};
             
@@ -1946,12 +1946,23 @@
                 }
             });
             
-            // Save to sessionStorage
-            sessionStorage.setItem('avsCalculatorData', JSON.stringify(formData));
+            // Save to localStorage
+            localStorage.setItem('avsCalculatorData', JSON.stringify(formData));
+            
+            // Brief visual feedback that data was saved
+            const indicator = document.querySelector('span[style*="💾"]');
+            if (indicator) {
+                indicator.style.opacity = '1';
+                indicator.style.fontWeight = 'bold';
+                setTimeout(() => {
+                    indicator.style.opacity = '0.7';
+                    indicator.style.fontWeight = 'normal';
+                }, 800);
+            }
         }
 
         function restoreFormData() {
-            const savedData = sessionStorage.getItem('avsCalculatorData');
+            const savedData = localStorage.getItem('avsCalculatorData');
             if (!savedData) return;
             
             try {
@@ -1976,13 +1987,29 @@
                 // Update refresh schedule
                 updateRefreshSchedule();
                 
+                // Show brief indication that data was restored
+                setTimeout(() => {
+                    const indicator = document.querySelector('span[style*="💾"]');
+                    if (indicator) {
+                        const originalText = indicator.textContent;
+                        indicator.textContent = '📥 Previous data restored';
+                        indicator.style.opacity = '1';
+                        indicator.style.fontWeight = 'bold';
+                        setTimeout(() => {
+                            indicator.textContent = originalText;
+                            indicator.style.opacity = '0.7';
+                            indicator.style.fontWeight = 'normal';
+                        }, 2000);
+                    }
+                }, 500);
+                
             } catch (error) {
                 console.log('Error restoring form data:', error);
             }
         }
 
         function clearFormData() {
-            sessionStorage.removeItem('avsCalculatorData');
+            localStorage.removeItem('avsCalculatorData');
         }
 
         // Auto-save form data when inputs change
@@ -2002,20 +2029,26 @@
             
             // Add clear data button (optional)
             const clearButton = document.createElement('button');
-            clearButton.textContent = 'Clear All Data';
+            clearButton.textContent = 'Clear Saved Data';
             clearButton.style.cssText = 'background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 20px; font-size: 14px;';
             clearButton.onclick = function() {
-                if (confirm('Clear all form data? This cannot be undone.')) {
+                if (confirm('Clear all saved form data? This will permanently remove your saved inputs from this browser.')) {
                     clearFormData();
                     location.reload();
                 }
             };
+            
+            // Add auto-save indicator
+            const autoSaveIndicator = document.createElement('span');
+            autoSaveIndicator.textContent = '💾 Data auto-saved';
+            autoSaveIndicator.style.cssText = 'color: #28a745; font-size: 12px; margin-left: 15px; opacity: 0.7;';
             
             // Add to header
             const header = document.querySelector('.header');
             const buttonContainer = document.createElement('div');
             buttonContainer.style.cssText = 'margin-top: 10px; text-align: center;';
             buttonContainer.appendChild(clearButton);
+            buttonContainer.appendChild(autoSaveIndicator);
             header.appendChild(buttonContainer);
         });
     </script>
