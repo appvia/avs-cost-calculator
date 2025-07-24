@@ -377,6 +377,53 @@
             font-style: italic;
         }
 
+        /* Cluster management styles */
+        .cluster-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .cluster-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0078d4;
+            margin: 0;
+        }
+        
+        .cluster-remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .cluster-remove-btn:hover {
+            background: #c82333;
+        }
+        
+        .cluster-summary {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: 500;
+            color: #0078d4;
+        }
+
 
     </style>
 </head>
@@ -689,37 +736,23 @@
                 <h2>Azure VMware Solution Costs</h2>
                 
                 <div class="section">
-                    <h3>AVS Configuration</h3>
+                    <h3>AVS Cluster Configuration</h3>
+                    <p>Add and configure individual AVS clusters with different node types and sizes to match your specific requirements.</p>
+                    
+                    <div style="margin: 20px 0;">
+                        <button type="button" onclick="addCluster()" style="background: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px;">
+                            ➕ Add New Cluster
+                        </button>
+                    </div>
+                    
+                    <div id="clusters-container">
+                        <!-- Clusters will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Global AVS Settings</h3>
                     <div class="input-group">
-                        <div class="input-field">
-                            <label>Number of AVS Clusters
-                                <span class="info-icon">i
-                                    <span class="tooltip">Number of separate AVS clusters needed. Multiple clusters may be required for large environments, different workload types (prod/dev/test), or geographical distribution.</span>
-                                </span>
-                            </label>
-                            <input type="number" id="avs_clusters" value="1" step="1" min="1" max="10">
-                        </div>
-                        <div class="input-field">
-                            <label>AVS Node Type
-                                <span class="info-icon">i
-                                    <span class="tooltip">Choose the Azure VMware Solution node type based on performance requirements. AV36 is standard, AV36P has more RAM, AV52 is high-performance with more storage, AV64 is CPU-optimized.</span>
-                                </span>
-                            </label>
-                            <select id="avs_node_type">
-                                <option value="AV36">AV36 (36 cores, 576GB RAM, 15.36TB vSAN)</option>
-                                <option value="AV36P">AV36P (36 cores, 768GB RAM, 15.36TB vSAN)</option>
-                                <option value="AV52">AV52 (52 cores, 1536GB RAM, 30.72TB vSAN)</option>
-                                <option value="AV64">AV64 (64 cores, 512GB RAM, 15.36TB vSAN)</option>
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>Nodes Per Cluster
-                                <span class="info-icon">i
-                                    <span class="tooltip">Number of nodes in each cluster. Minimum 3 nodes required per AVS cluster. Size based on your CPU, RAM, and storage requirements with 25% headroom recommended.</span>
-                                </span>
-                            </label>
-                            <input type="number" id="avs_nodes" value="6" step="1" min="3">
-                        </div>
                         <div class="input-field">
                             <label>Reserved Instance Term
                                 <span class="info-icon">i
@@ -1077,7 +1110,7 @@
                         </div>
                         
                         <div class="metric">
-                            <span class="metric-label">Cost Difference (5 Years)</span>
+                            <span class="metric-label" id="scenario-cost-difference-label">Cost Difference (5 Years)</span>
                             <span class="metric-value" id="scenario-cost-difference">£0</span>
                         </div>
                         
@@ -1095,7 +1128,7 @@
                             <div style="background: #fff5f5; border: 2px solid #feb2b2; border-radius: 10px; padding: 20px;">
                                 <h4 style="color: #c53030; margin-top: 0;">📊 Scenario A: Do Nothing (Stay On-Premises)</h4>
                                 <div class="metric" style="background: transparent; border: none; padding: 5px 0;">
-                                    <span class="metric-label" style="font-size: 14px;">5-Year Total Cost</span>
+                                    <span class="metric-label" style="font-size: 14px;" id="scenario-a-total-label">5-Year Total Cost</span>
                                     <span class="metric-value" id="scenario-a-total" style="color: #c53030;">£0</span>
                                 </div>
                                 
@@ -1117,7 +1150,7 @@
                             <div style="background: #f0fff4; border: 2px solid #9ae6b4; border-radius: 10px; padding: 20px;">
                                 <h4 style="color: #2f855a; margin-top: 0;">☁️ Scenario B: Migrate to Azure VMware Solution</h4>
                                 <div class="metric" style="background: transparent; border: none; padding: 5px 0;">
-                                    <span class="metric-label" style="font-size: 14px;">5-Year Total Cost</span>
+                                    <span class="metric-label" style="font-size: 14px;" id="scenario-b-total-label">5-Year Total Cost</span>
                                     <span class="metric-value" id="scenario-b-total" style="color: #2f855a;">£0</span>
                                 </div>
                                 
@@ -1198,7 +1231,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>5-Year Total Cost</strong></td>
+                                        <td><strong><span id="decision-matrix-total-cost-label">5-Year Total Cost</span></strong></td>
                                         <td id="decision-cost-do-nothing">£0</td>
                                         <td id="decision-cost-migrate">£0</td>
                                         <td id="decision-cost-winner">-</td>
@@ -1556,12 +1589,12 @@
                     </div>
                     
                     <div class="metric">
-                        <span class="metric-label">Total Benefits (5 Years)</span>
+                        <span class="metric-label" id="total-benefits-label">Total Benefits (5 Years)</span>
                         <span class="metric-value" id="total-benefits">£0</span>
                     </div>
 
                     <div class="metric">
-                        <span class="metric-label">Modernisation Savings (5 Years)</span>
+                        <span class="metric-label" id="modernisation-savings-label">Modernisation Savings (5 Years)</span>
                         <span class="metric-value positive" id="modernisation-savings">£0</span>
                     </div>
                     
@@ -1634,6 +1667,21 @@
                 defaultStartDate.setDate(defaultStartDate.getDate() + 30);
                 migrationStartInput.value = defaultStartDate.toISOString().split('T')[0];
             }
+            
+            // Add default cluster
+            addCluster();
+            
+            // Add event listeners for global settings that affect cluster costs
+            document.getElementById('reserved_term')?.addEventListener('change', updateClusterSummaries);
+            document.getElementById('hybrid_benefit')?.addEventListener('change', updateClusterSummaries);
+            
+            // Add event listeners for analysis period changes to update labels immediately
+            document.getElementById('scenario_analysis_period')?.addEventListener('input', updateScenarioLabels);
+            document.getElementById('analysis_period')?.addEventListener('input', updateROILabels);
+            
+            // Initialize labels with current values
+            updateScenarioLabels();
+            updateROILabels();
             
             updateRefreshSchedule();
             updateMigrationSchedule();
@@ -1794,6 +1842,178 @@
              document.getElementById('migration-schedule-text').textContent = scheduleText;
          }
 
+        // Cluster management functions
+        let clusterCounter = 0;
+        let clusters = [];
+
+        function addCluster() {
+            clusterCounter++;
+            const clusterId = `cluster_${clusterCounter}`;
+            
+            const cluster = {
+                id: clusterId,
+                name: `Cluster ${clusterCounter}`,
+                nodeType: 'AV36',
+                nodeCount: 6
+            };
+            
+            clusters.push(cluster);
+            renderCluster(cluster);
+            updateClusterSummaries();
+        }
+
+        function removeCluster(clusterId) {
+            clusters = clusters.filter(c => c.id !== clusterId);
+            document.getElementById(clusterId).remove();
+            updateClusterSummaries();
+        }
+
+        function renderCluster(cluster) {
+            const container = document.getElementById('clusters-container');
+            const clusterHtml = `
+                <div class="cluster-card" id="${cluster.id}">
+                    <div class="cluster-header">
+                        <input type="text" value="${cluster.name}" onchange="updateClusterName('${cluster.id}', this.value)" 
+                               style="border: none; background: transparent; font-size: 18px; font-weight: 600; color: #0078d4; width: 200px;">
+                        <button class="cluster-remove-btn" onclick="removeCluster('${cluster.id}')">🗑️ Remove</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>Node Type
+                                <span class="info-icon">i
+                                    <span class="tooltip">Choose the Azure VMware Solution node type for this cluster.</span>
+                                </span>
+                            </label>
+                            <select onchange="updateClusterNodeType('${cluster.id}', this.value)">
+                                <option value="AV36" ${cluster.nodeType === 'AV36' ? 'selected' : ''}>AV36 (36 cores, 576GB RAM, 15.36TB vSAN)</option>
+                                <option value="AV36P" ${cluster.nodeType === 'AV36P' ? 'selected' : ''}>AV36P (36 cores, 768GB RAM, 15.36TB vSAN)</option>
+                                <option value="AV52" ${cluster.nodeType === 'AV52' ? 'selected' : ''}>AV52 (52 cores, 1536GB RAM, 30.72TB vSAN)</option>
+                                <option value="AV64" ${cluster.nodeType === 'AV64' ? 'selected' : ''}>AV64 (64 cores, 512GB RAM, 15.36TB vSAN)</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Number of Nodes
+                                <span class="info-icon">i
+                                    <span class="tooltip">Number of nodes in this cluster. Minimum 3 nodes required per AVS cluster.</span>
+                                </span>
+                            </label>
+                            <input type="number" value="${cluster.nodeCount}" min="3" step="1" 
+                                   onchange="updateClusterNodeCount('${cluster.id}', this.value)">
+                        </div>
+                    </div>
+                    
+                    <div class="cluster-summary" id="${cluster.id}_summary">
+                        <!-- Summary will be updated dynamically -->
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', clusterHtml);
+        }
+
+        function updateClusterName(clusterId, newName) {
+            const cluster = clusters.find(c => c.id === clusterId);
+            if (cluster) {
+                cluster.name = newName;
+            }
+        }
+
+        function updateClusterNodeType(clusterId, nodeType) {
+            const cluster = clusters.find(c => c.id === clusterId);
+            if (cluster) {
+                cluster.nodeType = nodeType;
+                updateClusterSummaries();
+            }
+        }
+
+        function updateClusterNodeCount(clusterId, nodeCount) {
+            const cluster = clusters.find(c => c.id === clusterId);
+            if (cluster) {
+                cluster.nodeCount = parseInt(nodeCount);
+                updateClusterSummaries();
+            }
+        }
+
+        function updateClusterSummaries() {
+            const nodeCosts = {
+                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
+                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
+                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
+                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
+            };
+            
+            const reservedTerm = document.getElementById('reserved_term')?.value || 'payg';
+            const hybridBenefit = document.getElementById('hybrid_benefit')?.value === 'yes';
+            
+            clusters.forEach(cluster => {
+                let monthlyCost = nodeCosts[cluster.nodeType][reservedTerm] * cluster.nodeCount;
+                if (hybridBenefit) {
+                    monthlyCost *= 0.6;
+                }
+                
+                const annualCost = monthlyCost * 12;
+                const summaryElement = document.getElementById(`${cluster.id}_summary`);
+                if (summaryElement) {
+                    summaryElement.innerHTML = `
+                        ${cluster.nodeCount} × ${cluster.nodeType} nodes | 
+                        Monthly: £${monthlyCost.toLocaleString()} | 
+                        Annual: £${annualCost.toLocaleString()}
+                    `;
+                }
+            });
+        }
+
+                 function updateScenarioLabels() {
+             const analysisYears = parseInt(document.getElementById('scenario_analysis_period')?.value) || 5;
+             const totalCostLabel = `${analysisYears}-Year Total Cost`;
+             const costDifferenceLabel = `Cost Difference (${analysisYears} Year${analysisYears > 1 ? 's' : ''})`;
+             
+             // Update labels if elements exist
+             document.getElementById('scenario-cost-difference-label')?.textContent = costDifferenceLabel;
+             document.getElementById('scenario-a-total-label')?.textContent = totalCostLabel;
+             document.getElementById('scenario-b-total-label')?.textContent = totalCostLabel;
+             document.getElementById('decision-matrix-total-cost-label')?.textContent = totalCostLabel;
+         }
+
+         function updateROILabels() {
+             const analysisYears = parseInt(document.getElementById('analysis_period')?.value) || 5;
+             const benefitsLabel = `Total Benefits (${analysisYears} Year${analysisYears > 1 ? 's' : ''})`;
+             const modernisationLabel = `Modernisation Savings (${analysisYears} Year${analysisYears > 1 ? 's' : ''})`;
+             
+             // Update labels if elements exist
+             document.getElementById('total-benefits-label')?.textContent = benefitsLabel;
+             document.getElementById('modernisation-savings-label')?.textContent = modernisationLabel;
+         }
+
+         function getTotalClusterCosts() {
+            const nodeCosts = {
+                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
+                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
+                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
+                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
+            };
+            
+            const reservedTerm = document.getElementById('reserved_term')?.value || 'payg';
+            const hybridBenefit = document.getElementById('hybrid_benefit')?.value === 'yes';
+            
+            let totalMonthlyCost = 0;
+            clusters.forEach(cluster => {
+                let clusterCost = nodeCosts[cluster.nodeType][reservedTerm] * cluster.nodeCount;
+                if (hybridBenefit) {
+                    clusterCost *= 0.6;
+                }
+                totalMonthlyCost += clusterCost;
+            });
+            
+            return {
+                monthly: totalMonthlyCost,
+                annual: totalMonthlyCost * 12,
+                totalNodes: clusters.reduce((sum, cluster) => sum + cluster.nodeCount, 0),
+                clusterCount: clusters.length
+            };
+        }
+
          // Add event listeners for refresh schedule updates
          document.addEventListener('DOMContentLoaded', function() {
              document.getElementById('hardware_purchase_date').addEventListener('change', updateRefreshSchedule);
@@ -1838,9 +2058,6 @@
                 refresh_percentage: parseFloat(document.getElementById('refresh_percentage').value) || 85,
                 
                 // Azure costs
-                avs_node_type: document.getElementById('avs_node_type').value,
-                avs_clusters: parseInt(document.getElementById('avs_clusters').value) || 1,
-                avs_nodes: parseInt(document.getElementById('avs_nodes').value) || 3,
                 reserved_term: document.getElementById('reserved_term').value,
                 hybrid_benefit: document.getElementById('hybrid_benefit').value,
                 expressroute: parseFloat(document.getElementById('expressroute').value) || 0,
@@ -1926,20 +2143,9 @@
                 return 0;
             }
 
-            // Calculate AVS node costs based on type and terms (converted to GBP, roughly)
-            const nodeCosts = {
-                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
-                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
-                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
-                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
-            };
-
-            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters;
-            
-            // Apply Azure Hybrid Benefit (approximately 40% savings on compute)
-            if (inputs.hybrid_benefit === 'yes') {
-                monthlyAvsNodeCost *= 0.6;
-            }
+            // Calculate total AVS cluster costs
+            const totalClusterCosts = getTotalClusterCosts();
+            const monthlyAvsNodeCost = totalClusterCosts.monthly;
 
             // Calculate total monthly Azure costs
             const monthlyAzureCosts = monthlyAvsNodeCost + inputs.expressroute + inputs.azure_backup + 
@@ -2176,6 +2382,10 @@
             document.getElementById('total-investment').textContent = '£' + totalMigrationCosts.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('total-benefits').textContent = '£' + totalBenefits.toLocaleString(undefined, {maximumFractionDigits: 0});
             document.getElementById('modernisation-savings').textContent = '£' + totalModernisationSavings.toLocaleString(undefined, {maximumFractionDigits: 0});
+            
+            // Update labels with dynamic analysis period
+            document.getElementById('total-benefits-label').textContent = `Total Benefits (${inputs.analysis_period} Year${inputs.analysis_period > 1 ? 's' : ''})`;
+            document.getElementById('modernisation-savings-label').textContent = `Modernisation Savings (${inputs.analysis_period} Year${inputs.analysis_period > 1 ? 's' : ''})`;
 
             // Populate yearly breakdown table
             const yearlyTable = document.getElementById('yearly-breakdown');
@@ -2310,23 +2520,38 @@
             `;
 
             // Azure costs section
+            const clusterDetails = getTotalClusterCosts();
             detailsHtml += `
                 <div class="calculation-section">
                     <h4>2. Azure VMware Solution Cost Calculation</h4>
-                    <div class="calculation-step">Node Type: ${inputs.avs_node_type}</div>
-                    <div class="calculation-step">Number of Clusters: ${inputs.avs_clusters}</div>
-                    <div class="calculation-step">Nodes Per Cluster: ${inputs.avs_nodes}</div>
-                    <div class="calculation-step">Total Nodes: ${inputs.avs_clusters * inputs.avs_nodes}</div>
+                    <div class="calculation-step">Number of Clusters: ${clusterDetails.clusterCount}</div>
+                    <div class="calculation-step">Total Nodes: ${clusterDetails.totalNodes}</div>
                     <div class="calculation-step">Reserved Term: ${inputs.reserved_term}</div>
-                    <div class="calculation-step">Node Cost per Month = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term]).toLocaleString()}</div>
-                    <div class="calculation-step">Total Monthly AVS Cost = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term]).toLocaleString()} × ${inputs.avs_clusters * inputs.avs_nodes} = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters).toLocaleString()}</div>
+                    ${inputs.hybrid_benefit === 'yes' ? '<div class="calculation-step">Azure Hybrid Benefit: 40% discount applied</div>' : ''}
             `;
             
-            if (inputs.hybrid_benefit === 'yes') {
+            // Show individual cluster breakdown
+            clusters.forEach((cluster, index) => {
+                const nodeCosts = {
+                    'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
+                    'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
+                    'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
+                    'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
+                };
+                
+                let clusterMonthlyCost = nodeCosts[cluster.nodeType][inputs.reserved_term] * cluster.nodeCount;
+                if (inputs.hybrid_benefit === 'yes') {
+                    clusterMonthlyCost *= 0.6;
+                }
+                
                 detailsHtml += `
-                    <div class="calculation-step">Azure Hybrid Benefit (40% discount) = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters * 0.4).toLocaleString()} savings</div>
+                    <div class="calculation-step">• ${cluster.name}: ${cluster.nodeCount} × ${cluster.nodeType} = £${clusterMonthlyCost.toLocaleString()}/month</div>
                 `;
-            }
+            });
+            
+            detailsHtml += `
+                    <div class="calculation-step">Total Monthly AVS Cost = £${clusterDetails.monthly.toLocaleString()}</div>
+            `;
             
             detailsHtml += `
                     <div class="calculation-step">Additional Azure Services = £${(inputs.expressroute + inputs.azure_backup + inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services).toLocaleString()} per month</div>
@@ -2633,13 +2858,13 @@
                         
                         <div style="padding: 15px; background: #e8f5e8; border-radius: 5px;">
                             <strong>☁️ Azure Costs Breakdown:</strong>
-                            <div class="calculation-detail">AVS clusters: ${inputs.avs_clusters} × ${inputs.avs_nodes} nodes (${inputs.avs_node_type}) = ${inputs.avs_clusters * inputs.avs_nodes} total nodes: £${avsNodeCostAnnual.toLocaleString()}</div>
-                            <div class="calculation-detail">  • Node cost calculation details:</div>
-                            <div class="calculation-detail">    - Base monthly cost per node: £${nodeCosts[inputs.avs_node_type][inputs.reserved_term].toLocaleString()}</div>
-                            <div class="calculation-detail">    - Total monthly cost all clusters: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()}</div>
+                            <div class="calculation-detail">AVS Clusters: ${getTotalClusterCosts().clusterCount} clusters, ${getTotalClusterCosts().totalNodes} total nodes: £${avsNodeCostAnnual.toLocaleString()}</div>
+                            ${clusters.map(cluster => `<div class="calculation-detail">  • ${cluster.name}: ${cluster.nodeCount} × ${cluster.nodeType}</div>`).join('')}
+                            <div class="calculation-detail">  • Global settings:</div>
                             <div class="calculation-detail">    - Reserved term discount: ${inputs.reserved_term}</div>
                             ${inputs.hybrid_benefit === 'yes' ? `<div class="calculation-detail">    - Azure Hybrid Benefit: 40% savings applied</div>` : ''}
-                            <div class="calculation-detail">    - Annual cost: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()} × ${inputs.avs_nodes} × 12 = £${avsNodeCostAnnual.toLocaleString()}</div>
+                            <div class="calculation-detail">    - Total monthly cost all clusters: £${getTotalClusterCosts().monthly.toLocaleString()}</div>
+                            <div class="calculation-detail">    - Annual cost: £${getTotalClusterCosts().annual.toLocaleString()}</div>
                             <div class="calculation-detail">Additional services breakdown:</div>
                             <div class="calculation-detail">  • ExpressRoute: £${inputs.expressroute.toLocaleString()} × 12 = £${(inputs.expressroute * 12).toLocaleString()}</div>
                             <div class="calculation-detail">  • Backup: £${inputs.azure_backup.toLocaleString()} × 12 = £${(inputs.azure_backup * 12).toLocaleString()}</div>
@@ -2725,9 +2950,6 @@
                 refresh_percentage: parseFloat(document.getElementById('refresh_percentage').value) || 85,
                 hardware_end_of_support: document.getElementById('hardware_end_of_support').value,
                 hardware_end_of_life: document.getElementById('hardware_end_of_life').value,
-                avs_node_type: document.getElementById('avs_node_type').value,
-                avs_clusters: parseInt(document.getElementById('avs_clusters').value) || 1,
-                avs_nodes: parseInt(document.getElementById('avs_nodes').value) || 3,
                 reserved_term: document.getElementById('reserved_term').value,
                 hybrid_benefit: document.getElementById('hybrid_benefit').value,
                 expressroute: parseFloat(document.getElementById('expressroute').value) || 0,
@@ -2781,18 +3003,9 @@
             const refreshTriggerYear = refreshTriggerDate.getFullYear();
             const refreshCost = hardwareRelatedCosts * inputs.refresh_cost_multiplier * (inputs.refresh_percentage / 100);
 
-            // Calculate Azure costs
-            const nodeCosts = {
-                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
-                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
-                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
-                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
-            };
-
-            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters;
-            if (inputs.hybrid_benefit === 'yes') {
-                monthlyAvsNodeCost *= 0.6;
-            }
+            // Calculate total AVS cluster costs
+            const clusterCosts = getTotalClusterCosts();
+            const monthlyAvsNodeCost = clusterCosts.monthly;
 
             const monthlyAzureCosts = monthlyAvsNodeCost + inputs.expressroute + inputs.azure_backup + 
                 inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services;
@@ -2887,10 +3100,17 @@
             document.getElementById('recommended-strategy').textContent = recommendation;
             document.getElementById('recommended-strategy').className = totalScenarioB < totalScenarioA ? 'metric-value positive' : 'metric-value negative';
             
+            document.getElementById('scenario-cost-difference-label').textContent = `Cost Difference (${analysisYears} Year${analysisYears > 1 ? 's' : ''})`;
             document.getElementById('scenario-cost-difference').textContent = `£${Math.abs(totalDifference).toLocaleString()}`;
             document.getElementById('scenario-cost-difference').className = totalScenarioB < totalScenarioA ? 'metric-value positive' : 'metric-value negative';
             
             document.getElementById('scenario-breakeven').textContent = breakEvenYear > 0 ? `Year ${breakEvenYear}` : 'No break-even in analysis period';
+            
+            // Update scenario total cost labels
+            const totalCostLabel = `${analysisYears}-Year Total Cost`;
+            document.getElementById('scenario-a-total-label').textContent = totalCostLabel;
+            document.getElementById('scenario-b-total-label').textContent = totalCostLabel;
+            document.getElementById('decision-matrix-total-cost-label').textContent = totalCostLabel;
             
             document.getElementById('scenario-a-total').textContent = `£${totalScenarioA.toLocaleString()}`;
             document.getElementById('scenario-b-total').textContent = `£${totalScenarioB.toLocaleString()}`;
