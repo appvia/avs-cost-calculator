@@ -392,6 +392,7 @@
             <button class="tab" onclick="showTab('azure')">Azure VMware Solution</button>
             <button class="tab" onclick="showTab('modernisation')">Modernisation</button>
             <button class="tab" onclick="showTab('migration')">Migration Costs</button>
+            <button class="tab" onclick="showTab('scenario')">Scenario Planning</button>
             <button class="tab" onclick="showTab('documentation')">Documentation</button>
             <button class="tab" onclick="showTab('results')">ROI Analysis</button>
         </div>
@@ -619,6 +620,22 @@
                             </label>
                             <input type="number" id="refresh_percentage" value="85" step="5" min="0" max="100">
                         </div>
+                        <div class="input-field">
+                            <label>Hardware End of Support Date
+                                <span class="info-icon">i
+                                    <span class="tooltip">When does hardware vendor support end? After this date, you may not receive security updates, patches, or technical support from the vendor.</span>
+                                </span>
+                            </label>
+                            <input type="date" id="hardware_end_of_support" value="2025-01-01">
+                        </div>
+                        <div class="input-field">
+                            <label>Hardware End of Life Date
+                                <span class="info-icon">i
+                                    <span class="tooltip">When does the hardware reach end of life? After this date, the hardware is no longer supported by the vendor and may pose security or compliance risks.</span>
+                                </span>
+                            </label>
+                            <input type="date" id="hardware_end_of_life" value="2026-01-01">
+                        </div>
                     </div>
                 </div>
 
@@ -675,6 +692,14 @@
                     <h3>AVS Configuration</h3>
                     <div class="input-group">
                         <div class="input-field">
+                            <label>Number of AVS Clusters
+                                <span class="info-icon">i
+                                    <span class="tooltip">Number of separate AVS clusters needed. Multiple clusters may be required for large environments, different workload types (prod/dev/test), or geographical distribution.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="avs_clusters" value="1" step="1" min="1" max="10">
+                        </div>
+                        <div class="input-field">
                             <label>AVS Node Type
                                 <span class="info-icon">i
                                     <span class="tooltip">Choose the Azure VMware Solution node type based on performance requirements. AV36 is standard, AV36P has more RAM, AV52 is high-performance with more storage, AV64 is CPU-optimized.</span>
@@ -688,9 +713,9 @@
                             </select>
                         </div>
                         <div class="input-field">
-                            <label>Number of AVS Nodes
+                            <label>Nodes Per Cluster
                                 <span class="info-icon">i
-                                    <span class="tooltip">Minimum 3 nodes required for AVS cluster. Size based on your CPU, RAM, and storage requirements with 25% headroom recommended.</span>
+                                    <span class="tooltip">Number of nodes in each cluster. Minimum 3 nodes required per AVS cluster. Size based on your CPU, RAM, and storage requirements with 25% headroom recommended.</span>
                                 </span>
                             </label>
                             <input type="number" id="avs_nodes" value="6" step="1" min="3">
@@ -1013,6 +1038,199 @@
                 <div id="migration-timeline-summary" class="refresh-summary">
                     <h4>📅 Migration Schedule</h4>
                     <p id="migration-schedule-text">Configure migration start date and duration above to see the timeline.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="scenario" class="tab-content">
+            <div class="section">
+                <h2>Scenario Planning: Migrate vs. Do Nothing</h2>
+                <p>Compare the true business impact of two strategic decisions over the next 5 years. This analysis shows the real cost of inaction versus the investment in cloud migration.</p>
+                
+                <div class="section">
+                    <h3>Analysis Parameters</h3>
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>Analysis Period (Years)
+                                <span class="info-icon">i
+                                    <span class="tooltip">Time period for scenario comparison. Typically 5 years to capture full lifecycle costs including hardware refresh.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="scenario_analysis_period" value="5" step="1" min="3" max="10">
+                        </div>
+                        <div class="input-field">
+                            <!-- Empty for grid alignment -->
+                        </div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateScenarios()">Calculate Scenario Comparison</button>
+                
+                <div id="scenario-results" class="results" style="display: none;">
+                    <h2>Strategic Scenario Analysis</h2>
+                    
+                    <div class="section">
+                        <h3>Executive Summary</h3>
+                        <div class="metric">
+                            <span class="metric-label">Recommended Strategy</span>
+                            <span class="metric-value" id="recommended-strategy">Calculate scenarios to see recommendation</span>
+                        </div>
+                        
+                        <div class="metric">
+                            <span class="metric-label">Cost Difference (5 Years)</span>
+                            <span class="metric-value" id="scenario-cost-difference">£0</span>
+                        </div>
+                        
+                        <div class="metric">
+                            <span class="metric-label">Break-Even Point</span>
+                            <span class="metric-value" id="scenario-breakeven">Year 0</span>
+                        </div>
+                    </div>
+
+                    <div class="breakdown">
+                        <h3>Scenario Comparison</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0;">
+                            
+                            <!-- Scenario A: Do Nothing -->
+                            <div style="background: #fff5f5; border: 2px solid #feb2b2; border-radius: 10px; padding: 20px;">
+                                <h4 style="color: #c53030; margin-top: 0;">📊 Scenario A: Do Nothing (Stay On-Premises)</h4>
+                                <div class="metric" style="background: transparent; border: none; padding: 5px 0;">
+                                    <span class="metric-label" style="font-size: 14px;">5-Year Total Cost</span>
+                                    <span class="metric-value" id="scenario-a-total" style="color: #c53030;">£0</span>
+                                </div>
+                                
+                                <h5 style="color: #c53030; margin: 15px 0 10px 0;">Key Assumptions:</h5>
+                                <ul style="font-size: 14px; margin: 10px 0; padding-left: 20px;">
+                                    <li>Continue current operational costs</li>
+                                    <li>Hardware refresh when support ends</li>
+                                    <li>VMware license renewal at new pricing</li>
+                                    <li>Risk of running unsupported systems</li>
+                                </ul>
+                                
+                                <h5 style="color: #c53030; margin: 15px 0 10px 0;">Major Cost Events:</h5>
+                                <div id="scenario-a-events" style="font-size: 14px;">
+                                    <!-- Events will be populated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Scenario B: Migrate -->
+                            <div style="background: #f0fff4; border: 2px solid #9ae6b4; border-radius: 10px; padding: 20px;">
+                                <h4 style="color: #2f855a; margin-top: 0;">☁️ Scenario B: Migrate to Azure VMware Solution</h4>
+                                <div class="metric" style="background: transparent; border: none; padding: 5px 0;">
+                                    <span class="metric-label" style="font-size: 14px;">5-Year Total Cost</span>
+                                    <span class="metric-value" id="scenario-b-total" style="color: #2f855a;">£0</span>
+                                </div>
+                                
+                                <h5 style="color: #2f855a; margin: 15px 0 10px 0;">Key Assumptions:</h5>
+                                <ul style="font-size: 14px; margin: 10px 0; padding-left: 20px;">
+                                    <li>One-time migration investment</li>
+                                    <li>Azure VMware Solution ongoing costs</li>
+                                    <li>No hardware refresh required</li>
+                                    <li>No VMware license renewals</li>
+                                    <li>Partner funding reduces investment</li>
+                                </ul>
+                                
+                                <h5 style="color: #2f855a; margin: 15px 0 10px 0;">Major Cost Events:</h5>
+                                <div id="scenario-b-events" style="font-size: 14px;">
+                                    <!-- Events will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="breakdown">
+                        <h3>Year-by-Year Comparison</h3>
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Do Nothing Costs</th>
+                                    <th>Migration Costs</th>
+                                    <th>Annual Difference</th>
+                                    <th>Cumulative Difference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scenario-yearly-breakdown">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="breakdown">
+                        <h3>Risk and Business Impact Analysis</h3>
+                        <div id="risk-analysis" style="background: #fffaf0; border: 1px solid #ffa500; border-radius: 5px; padding: 20px; margin: 20px 0;">
+                            <h4 style="color: #cc7a00; margin-top: 0;">🚨 "Do Nothing" Risks and Hidden Costs</h4>
+                            <ul style="color: #cc7a00;">
+                                <li><strong>Security Risk:</strong> Running on unsupported hardware/software after end-of-support dates</li>
+                                <li><strong>Compliance Risk:</strong> Potential regulatory violations with unsupported systems</li>
+                                <li><strong>Operational Risk:</strong> No vendor support for critical issues</li>
+                                <li><strong>Technology Debt:</strong> Falling further behind on modern capabilities</li>
+                                <li><strong>Vendor Lock-in:</strong> Continued dependence on expensive VMware licensing</li>
+                                <li><strong>Scalability Constraints:</strong> Physical hardware limitations</li>
+                            </ul>
+                        </div>
+
+                        <div style="background: #f0fff4; border: 1px solid #28a745; border-radius: 5px; padding: 20px; margin: 20px 0;">
+                            <h4 style="color: #155724; margin-top: 0;">✅ Migration Benefits Beyond Cost Savings</h4>
+                            <ul style="color: #155724;">
+                                <li><strong>Agility:</strong> Rapid provisioning and scaling of resources</li>
+                                <li><strong>Reliability:</strong> Enterprise-grade Azure infrastructure with SLAs</li>
+                                <li><strong>Innovation:</strong> Access to Azure native services and AI/ML capabilities</li>
+                                <li><strong>Global Reach:</strong> Worldwide Azure regions for expansion</li>
+                                <li><strong>Disaster Recovery:</strong> Built-in Azure backup and recovery options</li>
+                                <li><strong>Future-Proof:</strong> Microsoft-managed infrastructure and updates</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="breakdown">
+                        <h3>Decision Framework</h3>
+                        <div id="decision-matrix" style="background: #f8f9fa; border-radius: 5px; padding: 20px; margin: 20px 0;">
+                            <h4 style="color: #0078d4; margin-top: 0;">Strategic Decision Criteria</h4>
+                            <table class="breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Criteria</th>
+                                        <th>Do Nothing</th>
+                                        <th>Migrate to Azure</th>
+                                        <th>Winner</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>5-Year Total Cost</strong></td>
+                                        <td id="decision-cost-do-nothing">£0</td>
+                                        <td id="decision-cost-migrate">£0</td>
+                                        <td id="decision-cost-winner">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Capital Investment Required</strong></td>
+                                        <td id="decision-capex-do-nothing">High (Hardware Refresh)</td>
+                                        <td id="decision-capex-migrate">Low (Migration Only)</td>
+                                        <td style="color: #28a745;">✅ Migrate</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Risk Profile</strong></td>
+                                        <td style="color: #dc3545;">High (EOL/EOS)</td>
+                                        <td style="color: #28a745;">Low (Modern Platform)</td>
+                                        <td style="color: #28a745;">✅ Migrate</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Operational Flexibility</strong></td>
+                                        <td style="color: #dc3545;">Limited</td>
+                                        <td style="color: #28a745;">High</td>
+                                        <td style="color: #28a745;">✅ Migrate</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Future Innovation</strong></td>
+                                        <td style="color: #dc3545;">Constrained</td>
+                                        <td style="color: #28a745;">Enabled</td>
+                                        <td style="color: #28a745;">✅ Migrate</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1462,6 +1680,8 @@
              const refreshCycleInput = document.getElementById('refresh_cycle_years');
              const refreshPercentageInput = document.getElementById('refresh_percentage');
              const refreshMultiplierInput = document.getElementById('refresh_cost_multiplier');
+             const endOfSupportInput = document.getElementById('hardware_end_of_support');
+             const endOfLifeInput = document.getElementById('hardware_end_of_life');
              
              if (!purchaseDateInput.value || !refreshCycleInput.value) {
                  document.getElementById('refresh-schedule-text').textContent = 'Configure hardware refresh settings above to see the schedule.';
@@ -1490,6 +1710,33 @@
              }
              
              scheduleText += `${refreshPercentage}% of hardware will be refreshed at ${((refreshMultiplier - 1) * 100).toFixed(0)}% cost increase.`;
+             
+             // Add end of support and end of life information
+             if (endOfSupportInput.value) {
+                 const endOfSupportDate = new Date(endOfSupportInput.value);
+                 const daysUntilEndOfSupport = Math.ceil((endOfSupportDate - currentDate) / (1000 * 60 * 60 * 24));
+                 
+                 if (daysUntilEndOfSupport < 0) {
+                     scheduleText += ` ⚠️ Hardware support ended ${Math.abs(daysUntilEndOfSupport)} days ago (${endOfSupportDate.toDateString()}).`;
+                 } else if (daysUntilEndOfSupport < 365) {
+                     scheduleText += ` ⚠️ Hardware support ends in ${daysUntilEndOfSupport} days (${endOfSupportDate.toDateString()}).`;
+                 } else {
+                     scheduleText += ` Support ends ${endOfSupportDate.toDateString()}.`;
+                 }
+             }
+             
+             if (endOfLifeInput.value) {
+                 const endOfLifeDate = new Date(endOfLifeInput.value);
+                 const daysUntilEndOfLife = Math.ceil((endOfLifeDate - currentDate) / (1000 * 60 * 60 * 24));
+                 
+                 if (daysUntilEndOfLife < 0) {
+                     scheduleText += ` 🚨 Hardware reached end of life ${Math.abs(daysUntilEndOfLife)} days ago (${endOfLifeDate.toDateString()}).`;
+                 } else if (daysUntilEndOfLife < 365) {
+                     scheduleText += ` 🚨 Hardware reaches end of life in ${daysUntilEndOfLife} days (${endOfLifeDate.toDateString()}).`;
+                 } else {
+                     scheduleText += ` End of life: ${endOfLifeDate.toDateString()}.`;
+                 }
+             }
              
              document.getElementById('refresh-schedule-text').textContent = scheduleText;
          }
@@ -1553,6 +1800,8 @@
              document.getElementById('refresh_cycle_years').addEventListener('input', updateRefreshSchedule);
              document.getElementById('refresh_percentage').addEventListener('input', updateRefreshSchedule);
              document.getElementById('refresh_cost_multiplier').addEventListener('input', updateRefreshSchedule);
+             document.getElementById('hardware_end_of_support').addEventListener('change', updateRefreshSchedule);
+             document.getElementById('hardware_end_of_life').addEventListener('change', updateRefreshSchedule);
              
              // Migration schedule event listeners
              document.getElementById('migration_start_date').addEventListener('change', updateMigrationSchedule);
@@ -1590,6 +1839,7 @@
                 
                 // Azure costs
                 avs_node_type: document.getElementById('avs_node_type').value,
+                avs_clusters: parseInt(document.getElementById('avs_clusters').value) || 1,
                 avs_nodes: parseInt(document.getElementById('avs_nodes').value) || 3,
                 reserved_term: document.getElementById('reserved_term').value,
                 hybrid_benefit: document.getElementById('hybrid_benefit').value,
@@ -1684,7 +1934,7 @@
                 'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
             };
 
-            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes;
+            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters;
             
             // Apply Azure Hybrid Benefit (approximately 40% savings on compute)
             if (inputs.hybrid_benefit === 'yes') {
@@ -2064,15 +2314,17 @@
                 <div class="calculation-section">
                     <h4>2. Azure VMware Solution Cost Calculation</h4>
                     <div class="calculation-step">Node Type: ${inputs.avs_node_type}</div>
-                    <div class="calculation-step">Number of Nodes: ${inputs.avs_nodes}</div>
+                    <div class="calculation-step">Number of Clusters: ${inputs.avs_clusters}</div>
+                    <div class="calculation-step">Nodes Per Cluster: ${inputs.avs_nodes}</div>
+                    <div class="calculation-step">Total Nodes: ${inputs.avs_clusters * inputs.avs_nodes}</div>
                     <div class="calculation-step">Reserved Term: ${inputs.reserved_term}</div>
                     <div class="calculation-step">Node Cost per Month = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term]).toLocaleString()}</div>
-                    <div class="calculation-step">Total Monthly AVS Cost = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term]).toLocaleString()} × ${inputs.avs_nodes} = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes).toLocaleString()}</div>
+                    <div class="calculation-step">Total Monthly AVS Cost = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term]).toLocaleString()} × ${inputs.avs_clusters * inputs.avs_nodes} = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters).toLocaleString()}</div>
             `;
             
             if (inputs.hybrid_benefit === 'yes') {
                 detailsHtml += `
-                    <div class="calculation-step">Azure Hybrid Benefit (40% discount) = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * 0.4).toLocaleString()} savings</div>
+                    <div class="calculation-step">Azure Hybrid Benefit (40% discount) = £${(nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters * 0.4).toLocaleString()} savings</div>
                 `;
             }
             
@@ -2381,9 +2633,10 @@
                         
                         <div style="padding: 15px; background: #e8f5e8; border-radius: 5px;">
                             <strong>☁️ Azure Costs Breakdown:</strong>
-                            <div class="calculation-detail">AVS nodes (${inputs.avs_node_type} × ${inputs.avs_nodes}): £${avsNodeCostAnnual.toLocaleString()}</div>
+                            <div class="calculation-detail">AVS clusters: ${inputs.avs_clusters} × ${inputs.avs_nodes} nodes (${inputs.avs_node_type}) = ${inputs.avs_clusters * inputs.avs_nodes} total nodes: £${avsNodeCostAnnual.toLocaleString()}</div>
                             <div class="calculation-detail">  • Node cost calculation details:</div>
-                            <div class="calculation-detail">    - Base monthly cost per node: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()}</div>
+                            <div class="calculation-detail">    - Base monthly cost per node: £${nodeCosts[inputs.avs_node_type][inputs.reserved_term].toLocaleString()}</div>
+                            <div class="calculation-detail">    - Total monthly cost all clusters: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()}</div>
                             <div class="calculation-detail">    - Reserved term discount: ${inputs.reserved_term}</div>
                             ${inputs.hybrid_benefit === 'yes' ? `<div class="calculation-detail">    - Azure Hybrid Benefit: 40% savings applied</div>` : ''}
                             <div class="calculation-detail">    - Annual cost: £${calculateAVSNodeMonthlyCost(inputs).toLocaleString()} × ${inputs.avs_nodes} × 12 = £${avsNodeCostAnnual.toLocaleString()}</div>
@@ -2426,7 +2679,7 @@
                 monthlyAvsNodeCostPerNode *= 0.6;
             }
             
-            return monthlyAvsNodeCostPerNode * inputs.avs_nodes;
+            return monthlyAvsNodeCostPerNode * inputs.avs_nodes * (inputs.avs_clusters || 1);
         }
 
         function calculateAVSNodeCost(inputs) {
@@ -2447,6 +2700,249 @@
         }
 
         // Local Storage Functions to save/restore form data
+        function calculateScenarios() {
+            // Get all inputs from the form
+            const costMethod = document.querySelector('input[name="cost_method"]:checked').value;
+            const analysisYears = parseInt(document.getElementById('scenario_analysis_period').value) || 5;
+            
+            // Get all the inputs (reusing logic from calculateROI)
+            const inputs = {
+                cost_method: costMethod,
+                fixed_annual_cost: parseFloat(document.getElementById('fixed_annual_cost').value) || 0,
+                hardware_cost: parseFloat(document.getElementById('hardware_cost').value) || 0,
+                vmware_licensing: parseFloat(document.getElementById('vmware_licensing').value) || 0,
+                storage_hardware: parseFloat(document.getElementById('storage_hardware').value) || 0,
+                network_equipment: parseFloat(document.getElementById('network_equipment').value) || 0,
+                backup_hardware: parseFloat(document.getElementById('backup_hardware').value) || 0,
+                support_contracts: parseFloat(document.getElementById('support_contracts').value) || 0,
+                datacenter_space: parseFloat(document.getElementById('datacenter_space').value) || 0,
+                power_cooling: parseFloat(document.getElementById('power_cooling').value) || 0,
+                staff_costs: parseFloat(document.getElementById('staff_costs').value) || 0,
+                connectivity: parseFloat(document.getElementById('connectivity').value) || 0,
+                hardware_purchase_date: document.getElementById('hardware_purchase_date').value,
+                refresh_cycle_years: parseInt(document.getElementById('refresh_cycle_years').value) || 4,
+                refresh_cost_multiplier: parseFloat(document.getElementById('refresh_cost_multiplier').value) || 1.15,
+                refresh_percentage: parseFloat(document.getElementById('refresh_percentage').value) || 85,
+                hardware_end_of_support: document.getElementById('hardware_end_of_support').value,
+                hardware_end_of_life: document.getElementById('hardware_end_of_life').value,
+                avs_node_type: document.getElementById('avs_node_type').value,
+                avs_clusters: parseInt(document.getElementById('avs_clusters').value) || 1,
+                avs_nodes: parseInt(document.getElementById('avs_nodes').value) || 3,
+                reserved_term: document.getElementById('reserved_term').value,
+                hybrid_benefit: document.getElementById('hybrid_benefit').value,
+                expressroute: parseFloat(document.getElementById('expressroute').value) || 0,
+                azure_backup: parseFloat(document.getElementById('azure_backup').value) || 0,
+                data_transfer: parseFloat(document.getElementById('data_transfer').value) || 0,
+                monitoring: parseFloat(document.getElementById('monitoring').value) || 0,
+                additional_storage: parseFloat(document.getElementById('additional_storage').value) || 0,
+                security_services: parseFloat(document.getElementById('security_services').value) || 0,
+                assessment: parseFloat(document.getElementById('assessment').value) || 0,
+                professional_services: parseFloat(document.getElementById('professional_services').value) || 0,
+                service_transition: parseFloat(document.getElementById('service_transition').value) || 0,
+                contingency: parseFloat(document.getElementById('contingency').value) || 0,
+                current_vmware_cost: parseFloat(document.getElementById('current_vmware_cost').value) || 0,
+                license_renewal_date: document.getElementById('license_renewal_date').value,
+                new_vmware_cost: parseFloat(document.getElementById('new_vmware_cost').value) || 0,
+                license_commitment_years: parseInt(document.getElementById('license_commitment_years').value) || 1,
+                migration_funding: parseFloat(document.getElementById('migration_funding').value) || 0,
+                azure_credits: parseFloat(document.getElementById('azure_credits').value) || 0,
+                additional_incentives: parseFloat(document.getElementById('additional_incentives').value) || 0,
+                migration_timeline: parseInt(document.getElementById('migration_timeline').value) || 6,
+                migration_start_date: document.getElementById('migration_start_date').value
+            };
+
+            // Calculate base annual costs
+            let baseAnnualOnPremCosts;
+            let hardwareRelatedCosts;
+            
+            if (inputs.cost_method === 'fixed') {
+                baseAnnualOnPremCosts = inputs.fixed_annual_cost;
+                hardwareRelatedCosts = inputs.fixed_annual_cost;
+            } else {
+                baseAnnualOnPremCosts = inputs.hardware_cost + inputs.vmware_licensing + 
+                    inputs.storage_hardware + inputs.network_equipment + inputs.backup_hardware + 
+                    inputs.support_contracts + inputs.datacenter_space + inputs.power_cooling + 
+                    inputs.staff_costs + inputs.connectivity;
+                hardwareRelatedCosts = inputs.hardware_cost + inputs.storage_hardware + inputs.network_equipment;
+            }
+
+            // Calculate when hardware refresh is needed
+            const purchaseDate = new Date(inputs.hardware_purchase_date);
+            const currentDate = new Date();
+            const endOfSupportDate = new Date(inputs.hardware_end_of_support);
+            const endOfLifeDate = new Date(inputs.hardware_end_of_life);
+            
+            // Determine refresh timing (prefer end of support as trigger)
+            let refreshTriggerDate = endOfSupportDate;
+            if (!inputs.hardware_end_of_support && inputs.hardware_end_of_life) {
+                refreshTriggerDate = endOfLifeDate;
+            }
+            
+            const refreshTriggerYear = refreshTriggerDate.getFullYear();
+            const refreshCost = hardwareRelatedCosts * inputs.refresh_cost_multiplier * (inputs.refresh_percentage / 100);
+
+            // Calculate Azure costs
+            const nodeCosts = {
+                'AV36': { payg: 7000, '1year': 5600, '3year': 4200 },
+                'AV36P': { payg: 9350, '1year': 7480, '3year': 5610 },
+                'AV52': { payg: 14000, '1year': 11200, '3year': 8400 },
+                'AV64': { payg: 11200, '1year': 8960, '3year': 6720 }
+            };
+
+            let monthlyAvsNodeCost = nodeCosts[inputs.avs_node_type][inputs.reserved_term] * inputs.avs_nodes * inputs.avs_clusters;
+            if (inputs.hybrid_benefit === 'yes') {
+                monthlyAvsNodeCost *= 0.6;
+            }
+
+            const monthlyAzureCosts = monthlyAvsNodeCost + inputs.expressroute + inputs.azure_backup + 
+                inputs.data_transfer + inputs.monitoring + inputs.additional_storage + inputs.security_services;
+            const annualAzureCosts = monthlyAzureCosts * 12;
+
+            // Calculate migration investment
+            const migrationCosts = inputs.assessment + inputs.professional_services + inputs.service_transition;
+            const grossMigrationCosts = migrationCosts * (1 + inputs.contingency / 100);
+            const totalPartnerFunding = inputs.migration_funding + inputs.azure_credits + inputs.additional_incentives;
+            const netMigrationCosts = Math.max(0, grossMigrationCosts - totalPartnerFunding);
+
+            // Calculate scenarios year by year
+            const scenarioA = []; // Do Nothing
+            const scenarioB = []; // Migrate
+            let cumulativeDifference = 0;
+            let breakEvenYear = 0;
+
+            for (let year = 1; year <= analysisYears; year++) {
+                const currentYear = currentDate.getFullYear() + year - 1;
+                
+                // Scenario A: Do Nothing costs
+                let yearAcosts = baseAnnualOnPremCosts;
+                
+                // Add VMware license costs (may increase after renewal)
+                const renewalDate = new Date(inputs.license_renewal_date);
+                let vmwareCost = inputs.current_vmware_cost;
+                if (currentYear >= renewalDate.getFullYear()) {
+                    vmwareCost = inputs.new_vmware_cost;
+                }
+                yearAcosts += vmwareCost;
+                
+                // Add hardware refresh cost if needed
+                let refreshCostThisYear = 0;
+                if (currentYear === refreshTriggerYear) {
+                    refreshCostThisYear = refreshCost;
+                    yearAcosts += refreshCostThisYear;
+                }
+                
+                scenarioA.push({
+                    year: year,
+                    costs: yearAcosts,
+                    events: [
+                        `Annual operations: £${baseAnnualOnPremCosts.toLocaleString()}`,
+                        `VMware licensing: £${vmwareCost.toLocaleString()}`,
+                        ...(refreshCostThisYear > 0 ? [`Hardware refresh: £${refreshCostThisYear.toLocaleString()}`] : [])
+                    ]
+                });
+
+                // Scenario B: Migration costs
+                let yearBcosts = annualAzureCosts;
+                
+                // Add migration investment in year 1
+                let migrationCostThisYear = 0;
+                if (year === 1) {
+                    migrationCostThisYear = netMigrationCosts;
+                    yearBcosts += migrationCostThisYear;
+                }
+                
+                scenarioB.push({
+                    year: year,
+                    costs: yearBcosts,
+                    events: [
+                        `Azure VMware Solution: £${annualAzureCosts.toLocaleString()}`,
+                        ...(migrationCostThisYear > 0 ? [`Migration investment: £${migrationCostThisYear.toLocaleString()}`] : [])
+                    ]
+                });
+
+                // Calculate cumulative difference
+                const yearlyDifference = yearAcosts - yearBcosts;
+                cumulativeDifference += yearlyDifference;
+                
+                // Check for break-even point
+                if (cumulativeDifference >= 0 && breakEvenYear === 0) {
+                    breakEvenYear = year;
+                }
+            }
+
+            // Calculate totals
+            const totalScenarioA = scenarioA.reduce((sum, year) => sum + year.costs, 0);
+            const totalScenarioB = scenarioB.reduce((sum, year) => sum + year.costs, 0);
+            const totalDifference = totalScenarioA - totalScenarioB;
+
+            // Determine recommendation
+            let recommendation = "Calculate scenarios to see recommendation";
+            if (totalScenarioB < totalScenarioA) {
+                recommendation = `Migrate to Azure VMware Solution (Save £${totalDifference.toLocaleString()})`;
+            } else {
+                recommendation = `Stay On-Premises (Save £${Math.abs(totalDifference).toLocaleString()})`;
+            }
+
+            // Update UI
+            document.getElementById('recommended-strategy').textContent = recommendation;
+            document.getElementById('recommended-strategy').className = totalScenarioB < totalScenarioA ? 'metric-value positive' : 'metric-value negative';
+            
+            document.getElementById('scenario-cost-difference').textContent = `£${Math.abs(totalDifference).toLocaleString()}`;
+            document.getElementById('scenario-cost-difference').className = totalScenarioB < totalScenarioA ? 'metric-value positive' : 'metric-value negative';
+            
+            document.getElementById('scenario-breakeven').textContent = breakEvenYear > 0 ? `Year ${breakEvenYear}` : 'No break-even in analysis period';
+            
+            document.getElementById('scenario-a-total').textContent = `£${totalScenarioA.toLocaleString()}`;
+            document.getElementById('scenario-b-total').textContent = `£${totalScenarioB.toLocaleString()}`;
+
+            // Populate events
+            document.getElementById('scenario-a-events').innerHTML = scenarioA
+                .filter(year => year.events.length > 1 || year.events[0].includes('refresh'))
+                .map(year => `<div><strong>Year ${year.year}:</strong><br/>${year.events.join('<br/>')}</div>`)
+                .join('<br/>');
+
+            document.getElementById('scenario-b-events').innerHTML = scenarioB
+                .filter(year => year.events.length > 1)
+                .map(year => `<div><strong>Year ${year.year}:</strong><br/>${year.events.join('<br/>')}</div>`)
+                .join('<br/>');
+
+            // Populate yearly breakdown table
+            const yearlyBreakdown = document.getElementById('scenario-yearly-breakdown');
+            yearlyBreakdown.innerHTML = '';
+            
+            let runningCumulative = 0;
+            for (let i = 0; i < analysisYears; i++) {
+                const yearDiff = scenarioA[i].costs - scenarioB[i].costs;
+                runningCumulative += yearDiff;
+                
+                const row = document.createElement('tr');
+                if (i + 1 === breakEvenYear) {
+                    row.style.backgroundColor = '#d4edda';
+                    row.style.fontWeight = 'bold';
+                }
+                
+                row.innerHTML = `
+                    <td>Year ${i + 1}</td>
+                    <td>£${scenarioA[i].costs.toLocaleString()}</td>
+                    <td>£${scenarioB[i].costs.toLocaleString()}</td>
+                    <td style="color: ${yearDiff > 0 ? '#28a745' : '#dc3545'}">£${yearDiff.toLocaleString()}</td>
+                    <td style="color: ${runningCumulative > 0 ? '#28a745' : '#dc3545'}">£${runningCumulative.toLocaleString()}</td>
+                    <td>${runningCumulative >= 0 ? '✅ Migration pays for itself' : '⏳ Still recovering investment'}</td>
+                `;
+                yearlyBreakdown.appendChild(row);
+            }
+
+            // Update decision matrix
+            document.getElementById('decision-cost-do-nothing').textContent = `£${totalScenarioA.toLocaleString()}`;
+            document.getElementById('decision-cost-migrate').textContent = `£${totalScenarioB.toLocaleString()}`;
+            document.getElementById('decision-cost-winner').innerHTML = totalScenarioB < totalScenarioA ? 
+                '<span style="color: #28a745;">✅ Migrate</span>' : 
+                '<span style="color: #dc3545;">❌ Do Nothing</span>';
+
+            // Show results
+            document.getElementById('scenario-results').style.display = 'block';
+        }
+
         function saveFormData() {
             const formData = {};
             
